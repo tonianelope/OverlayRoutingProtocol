@@ -42,6 +42,11 @@ public class RoutingTable {
 		
 	}
 	
+	/**
+	 * Returns the cost to the destination given by netID
+	 * Returns -1 if ID is not found in routing table
+	 * @param netID 
+	 */
 	public int costTo(int netID){
 		for(int i = 0; i<this.length; i++){
 			if(table[i][0] == netID){
@@ -52,8 +57,19 @@ public class RoutingTable {
 		return -1;
 	}
 	
+	/**
+	 * Returns the ID of the next hop to the destination given by netID
+	 * Returns -1 if given netID is not found in routing table
+	 * @param netID 
+	 */
 	public int nextHop(int netID){
+		for(int i = 0; i<this.length; i++){
+			if(table[i][0] == netID){
+				return table[i][1];
+			}
+		}
 		
+		return -1;
 	}
 	
 	public int[][] getTable(){
@@ -64,11 +80,11 @@ public class RoutingTable {
 	}
 	
 	public int toString(){
-		int result = "[";
+		String result = "[";
 		
 		for(int i=0; i<this.length; i++){
 			if(table[i][0] != null){
-				result = result.concat(table[i][0] +":"+ table[i][1] +":"+ table[i][2] + " ");
+				result = result.concat(table[i][0] +"|"+ table[i][1] +"|"+ table[i][2] + ";");
 			}
 		}
 		result = result.concat("]");
