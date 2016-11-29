@@ -56,7 +56,34 @@ public class RoutingTable {
 		if(!added){
 			int[][] temp = table;
 			table = new int[++length][2];
-			System.arraycopy(temp, 0, table, length);
+			System.arraycopy(temp, 0, table, temp.length);
+		}
+	}
+	
+	/**
+	 * Updates an existing entry in the routing table
+	 * Does nothing if entry is not in table
+	 */
+	public void updateEntry(int destID, int newNextHop, int newCost){
+		for(int i = 0; i<this.length; i++){
+			if(table[i][0] == destID){
+				table[i][1] = newNextHop;
+				table[i][2] = newCost;
+			}
+		}
+	}
+	
+	/**
+	 * Completely deletes an existing entry in the routing table
+	 * Does nothing if entry is not in table
+	 */
+	public void deleteEntry(int destID){
+		for(int i = 0; i<this.length; i++){
+			if(table[i][0] == destID){
+				table[i][0] = 0;
+				table[i][1] = 0;
+				table[i][2] = 0;
+			}
 		}
 	}
 	
@@ -76,7 +103,7 @@ public class RoutingTable {
 				return table[i][2];
 			}
 		}
-		
+		//else error
 		return -1;
 	}
 	
@@ -85,13 +112,13 @@ public class RoutingTable {
 	 * Returns -1 if given netID is not found in routing table
 	 * @param netID 
 	 */
-	public int nextHop(int netID){
+	public int getNextHop(int netID){
 		for(int i = 0; i<this.length; i++){
 			if(table[i][0] == netID){
 				return table[i][1];
 			}
 		}
-		
+		//else error
 		return -1;
 	}
 	
