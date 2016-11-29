@@ -13,8 +13,9 @@ public class Router {
 	 * @param id?
 	 * 
 	 */
-	public Router(String name){
+	public Router(String name, int id){
 		this.name = name;
+		this.id = id;
 		this.user = new User[0];
 		this.neighbors = new Router[0];
 		
@@ -22,6 +23,16 @@ public class Router {
 	
 	public void forwarMessage(DatagramPacket p){
 		//get packet destination/address
+		IPv4Packet packet = IPv4Packet.fromDatagramPacket(p);
+		int dest = packet.getDest();
+		int hop = RoutingTable.getNextHop(dest);
+		
+		if(hop == id){
+			hop = dest;
+		}
+		
+		p.setSocketAddress(dest); //???? whats the param
+		socket.send(p);
 		//lookup destination in routing table
 		//send to next hop
 	}
