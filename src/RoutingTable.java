@@ -36,6 +36,29 @@ public class RoutingTable {
 		}
 	}
 	
+	/**
+	 * Adds a new entry to the routing table
+	 * If there is no space, the table is extended
+	 * Warning: untested
+	 */
+	public void addEntry(int destID, int nextHopID, int cost){
+		int i = 0;
+		boolean added = false;
+		while(i < this.length && !added){
+			if(table[i][0] == 0){
+				table[i][0] = destID;
+				table[i][1] = nextHopID;
+				table[i][2] = cost;
+				added = true;
+			}
+			i++;
+		}
+		if(!added){
+			int[][] temp = table;
+			table = new int[++length][2];
+			System.arraycopy(temp, 0, table, length);
+		}
+	}
 	
 	//TODO
 	public void dijkstraAlgorithm(){
@@ -72,12 +95,19 @@ public class RoutingTable {
 		return -1;
 	}
 	
+	/**
+	 * returns the table array
+	 */
 	public int[][] getTable(){
 		return this.table;
 	}
+	/**
+	 * returns the length of the table
+	 */
 	public int getLength(){
 		return this.length;
 	}
+	
 	
 	public int toString(){
 		String result = "[";
