@@ -56,7 +56,7 @@ public class RoutingTable {
 		if(!added){
 			int[][] temp = table;
 			table = new int[++length][2];
-			System.arraycopy(temp, 0, table, temp.length);
+			System.arraycopy(temp, 0, table, 0, temp.length);
 		}
 	}
 	
@@ -136,11 +136,11 @@ public class RoutingTable {
 	}
 	
 	
-	public int toString(){
+	public String toString(){
 		String result = "[";
 		
 		for(int i=0; i<this.length; i++){
-			if(table[i][0] != null){
+			if(table[i][0] != 0){
 				result = result.concat(table[i][0] +"|"+ table[i][1] +"|"+ table[i][2] + ";");
 			}
 		}
