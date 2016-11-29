@@ -4,7 +4,7 @@ import java.io.ObjectInputStream;
 /**
  * Class describes the functionality of a Routing Table.
  * default implementation is a table with 3 columns, |network id|next hop|cost|, and variable rows
- * @version 0.2 pre-Alpha
+ * @version 0.3 pre-Alpha
  */
 public class RoutingTable {
 	public static final int DEFAULT_COLUMNS = 3;
