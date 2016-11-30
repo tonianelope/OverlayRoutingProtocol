@@ -30,7 +30,8 @@ public class Router {
 		if(hop == id){
 			hop = dest;
 		}
-		
+		//decrese time to live
+		//change checksum
 		p.setSocketAddress(dest); //???? whats the param
 		socket.send(p);
 		//lookup destination in routing table
