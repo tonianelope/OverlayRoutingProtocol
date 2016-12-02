@@ -3,7 +3,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.net.DatagramPacket;
 
-public class Router implements Runnable {
+public class Router extends Thread {
 	static final int PACKETSIZE = 65536;
 
 	String name;
@@ -67,8 +67,9 @@ public class Router implements Runnable {
 		while (true) {
 			DatagramPacket p = new DatagramPacket(new byte[PACKETSIZE], PACKETSIZE);
 			try {
+				System.out.print("r");
 				socket.receive(p);
-				System.out.println("r");
+				System.out.print("r");
 				forwardMessage(p);
 			} catch (Exception e) {
 				if (!(e instanceof SocketException))

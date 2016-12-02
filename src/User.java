@@ -4,7 +4,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
 
-public class User implements Runnable{
+public class User extends Thread{
 	static final int PACKETSIZE = 65536;
 
 	private String name;

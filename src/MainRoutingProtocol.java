@@ -36,10 +36,15 @@ public class MainRoutingProtocol {
 		
 		rTwo.setTable(t2);
 		
-		rOne.start();
-		rTwo.start();
-		one.start();
-		two.start();
+		Thread tr1 = new Thread(rOne);
+		Thread tr2 = new Thread(rTwo);
+		Thread tr3 = new Thread(one);
+		Thread tr4 = new Thread(two);
+		
+		tr1.start();
+		tr2.start();
+		tr3.start();
+		tr4.start();
 		
 		System.out.println("Start");
 		String s = "Hello, Bob";

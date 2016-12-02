@@ -79,7 +79,7 @@ public class UDPPacket {
 			destPort = oin.readShort();
 			length = oin.readShort();
 			checksum = oin.readShort();
-			for (int i = 0; i < length - 8; i++) {
+			for (int i = 0; i < (length - 8); i++) {
 				data[i] = oin.readByte();
 			}
 		} catch (IOException e) {
