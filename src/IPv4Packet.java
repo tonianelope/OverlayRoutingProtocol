@@ -1,7 +1,7 @@
 public class IPv4Packet{
 
   private final byte version = 4;
-  ptfinal byte hLength = 20; (in bytes)
+  private final byte hLength = 20; //(in bytes)
   
   //service not used
   
@@ -25,11 +25,11 @@ public class IPv4Packet{
     this.srcIPAdr = srcIPAdr;
     this.destIPAdr = destIPAdr;
     this.data = data;
-    tLength = hLength + data.length;
-    hChecksum = setChecksum(this);
+    tLength =(short) (hLength + data.length);
+    setChecksum();
   }
   
-  public setChecksum(IPv4Packet p){
+  public void setChecksum(){
      //add all 16 bit values (exluding checksum)
     //convert to binary. first 4 bits (carry) get added to rest
     //invert = checksum
