@@ -32,6 +32,7 @@ public class Router {
 		}
 		//decrese time to live
 		//change checksum
+		//if(timeToLife>0);
 		p.setSocketAddress(dest); //???? whats the param
 		socket.send(p);
 		//lookup destination in routing table
