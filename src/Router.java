@@ -13,7 +13,7 @@ public class Router extends Thread {
 	User[] user;
 	DatagramSocket socket;
 	RoutingTable table;
-
+	private InetSocketAddress address;
 	/**
 	 *
 	 * @param name

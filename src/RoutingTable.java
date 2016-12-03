@@ -87,11 +87,6 @@ public class RoutingTable {
 		}
 	}
 	
-	//TODO
-	public void dijkstraAlgorithm(){
-		
-	}
-	
 	/**
 	 * Returns the cost to the destination given by netID
 	 * Returns -1 if ID is not found in routing table
