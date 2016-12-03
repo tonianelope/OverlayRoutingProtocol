@@ -15,7 +15,7 @@ public class UDPPacket {
 	private byte[] data;
 
 	/**
-	 * Creat UDP Packet 
+	 * Creat UDP Packet (overlay over ipv4?)
 	 * 
 	 * 
 	 * @param srcPort
