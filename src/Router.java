@@ -5,6 +5,7 @@ import java.net.DatagramPacket;
 
 public class Router extends Thread {
 	static final int PACKETSIZE = 65536;
+	public static final int RTABLE_RESEND_INTERVAL = 10000; //10 s, 10000 ms
 
 	String name;
 	int id; // id static?
@@ -98,6 +99,13 @@ public class Router extends Thread {
 		System.arraycopy(neighbors, 0, temp, 0, neighbors.length);
 		temp[neighbors.length] = n;
 		neighbors = temp;
+	}
+	
+	/**
+	 * Sends this router's current routing table to all neighbours
+	 */
+	public void sendTable(){
+		
 	}
 
 	public void setTable(RoutingTable t) {

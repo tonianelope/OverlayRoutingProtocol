@@ -11,6 +11,7 @@ public class User extends Thread{
 	private String name;
 	private int port;
 	InetSocketAddress routerAdr;
+	private InetAddress address;
 
 	DatagramSocket socket;
 
