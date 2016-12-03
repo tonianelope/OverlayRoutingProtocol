@@ -14,6 +14,14 @@ public class UDPPacket {
 	private int checksum; // header + data
 	private byte[] data;
 
+	/**
+	 * Creat UDP Packet 
+	 * 
+	 * 
+	 * @param srcPort
+	 * @param destPort
+	 * @param data
+	 */
 	public UDPPacket(int srcPort, int destPort, byte[] data) {
 		this.srcPort = srcPort;
 		this.destPort = destPort;
