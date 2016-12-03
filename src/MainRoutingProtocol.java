@@ -1,4 +1,5 @@
 import java.net.InetSocketAddress;
+import java.util.Arrays;
 
 public class MainRoutingProtocol {
 
@@ -13,12 +14,11 @@ public class MainRoutingProtocol {
 		
 	public static void main(String[] args) {
 		System.out.println("Start:");
-		Router rOne = new Router("localhost", PORT_1);
-		User one = new User("Alice", PORT_2,"localhost", PORT_1);
-		Router rTwo = new Router("localhost", PORT_3);
-		User two = new User("Bob", PORT_4,"localhost", PORT_3);
+		Router rOne = new Router("Bruke", PORT_1);
+		User one = new User("Alice", PORT_2, rOne);
+		Router rTwo = new Router("Walsh", PORT_3);
+		User two = new User("Bob", PORT_4, rTwo);
 		
-		System.out.println("tables");
 		RoutingTable t1 = new RoutingTable(4);
 		RoutingTable t2 = new RoutingTable(4);
 		
@@ -45,13 +45,16 @@ public class MainRoutingProtocol {
 		tr2.start();
 		tr3.start();
 		tr4.start();
-		
-		System.out.println("Start");
+	
 		String s = "Hello, Bob";
 		byte[] data = s.getBytes();
+		//System.out.println(Arrays.toString(data));
 		one.send(PORT_4, data);
 		
-		
+		s = "Hello, Alcie";
+		data = s.getBytes();
+		//System.out.println(Arrays.toString(data));
+		two.send(PORT_2, data);
 	}
 
 }

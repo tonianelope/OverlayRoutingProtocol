@@ -3,6 +3,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
+import java.util.Arrays;
 
 public class User extends Thread{
 	static final int PACKETSIZE = 65536;
@@ -13,13 +14,14 @@ public class User extends Thread{
 
 	DatagramSocket socket;
 
-	public User(String name, int port,String router, int routerPort) {
+	public User(String name, int port, Router router) {
 		try {
 			this.name = name;
 			this.port = port;
-			routerAdr = new InetSocketAddress(router,routerPort);
+			routerAdr = new InetSocketAddress("localhost",router.getPort());
 			socket = new DatagramSocket(port);
 			//run();
+			router.join(this);
 			System.out.println("Creating: "+name);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -47,8 +49,8 @@ public class User extends Thread{
 
 	public void send(int destPort, byte[] data) {
 		try {
-			System.out.println("Sending: " + data.toString() + " to " + destPort);
-			UDPPacket udp = new UDPPacket((short) port, (short) destPort, data);
+			System.out.println(name+" Sending: " + Arrays.toString(data) + " to " + destPort);
+			UDPPacket udp = new UDPPacket(port, destPort, data);
 			DatagramPacket packet = udp.toDatagramPacket();
 			packet.setSocketAddress(routerAdr);
 			socket.send(packet);
@@ -60,7 +62,7 @@ public class User extends Thread{
 	public void receive(DatagramPacket p) throws Exception{
 		UDPPacket udp = UDPPacket.fromDatagramPacket(p);
 		byte[] data = udp.getData();
-		System.out.println("received "+new String(data, "UTF-8"));
+		System.out.println(name+" received "+new String(data, "UTF-8"));
 		
 	}
 

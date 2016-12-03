@@ -1,4 +1,5 @@
 import java.net.DatagramPacket;
+import java.util.Arrays;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -7,17 +8,17 @@ import java.io.ObjectOutputStream;
 
 public class UDPPacket {
 
-	private short srcPort;
-	private short destPort;
-	private short length; // in bytes
-	private short checksum; // header + data
+	private int srcPort;
+	private int destPort;
+	private int length; // in bytes
+	private int checksum; // header + data
 	private byte[] data;
 
-	public UDPPacket(short srcPort, short destPort, byte[] data) {
+	public UDPPacket(int srcPort, int destPort, byte[] data) {
 		this.srcPort = srcPort;
 		this.destPort = destPort;
 		this.data = data;
-		this.length = (short) (8 + (data.length / 8));
+		this.length = (8 + data.length);
 		this.checksum = setChecksum();
 	}
 
@@ -32,14 +33,12 @@ public class UDPPacket {
 			bout = new ByteArrayOutputStream();
 			oout = new ObjectOutputStream(bout);
 
-			oout.writeShort(srcPort); // write type to stream
-			oout.writeShort(destPort);
-			oout.writeShort(length);
-			oout.writeShort(checksum);
+			oout.writeInt(srcPort); // write type to stream
+			oout.writeInt(destPort);
+			oout.writeInt(length);
+			oout.writeInt(checksum);
 			oout.write(data);
 			// toObjectOutputStream(oout); // write content to stream depending
-			// on type
-
 			oout.flush();
 			content = bout.toByteArray(); // convert content to byte array
 			packet = new DatagramPacket(content, content.length); 
@@ -75,11 +74,13 @@ public class UDPPacket {
 
 	protected UDPPacket(ObjectInputStream oin) {
 		try {
-			srcPort = oin.readShort();
-			destPort = oin.readShort();
-			length = oin.readShort();
-			checksum = oin.readShort();
-			for (int i = 0; i < (length - 8); i++) {
+			srcPort = oin.readInt();
+			destPort = oin.readInt();
+			length = oin.readInt();
+			checksum = oin.readInt();
+			int dataLength = (length-8);
+			data = new byte[dataLength];
+			for (int i = 0; i < dataLength; i++) {
 				data[i] = oin.readByte();
 			}
 		} catch (IOException e) {
@@ -87,7 +88,7 @@ public class UDPPacket {
 		}
 	}
 
-	public short setChecksum() {
+	public int setChecksum() {
 		return 0;
 	}
 

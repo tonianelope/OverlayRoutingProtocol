@@ -45,7 +45,6 @@ public class Router extends Thread {
 			System.out.println("Received for: "+dest);
 
 			int hop = table.getNextHop(dest);
-			System.out.println("Hop: " + hop);
 			if (hop == id) {
 				hop = dest;
 			}
@@ -54,10 +53,10 @@ public class Router extends Thread {
 			// Sets the SocketAddress (usually IP address + port number) of the
 			// remote host to which this datagram is being sent.
 			System.out.println("Hop: " + hop);
-			p.setSocketAddress(new InetSocketAddress(hop));
+			p.setSocketAddress(new InetSocketAddress("localhost",hop));
 			socket.send(p);
 		} catch (Exception e) {
-			System.out.println("ERROR can't forward packet");
+			System.err.println("ERROR can't forward packet");
 			e.printStackTrace();
 		}
 	}
@@ -67,9 +66,7 @@ public class Router extends Thread {
 		while (true) {
 			DatagramPacket p = new DatagramPacket(new byte[PACKETSIZE], PACKETSIZE);
 			try {
-				System.out.print("r");
 				socket.receive(p);
-				System.out.print("r");
 				forwardMessage(p);
 			} catch (Exception e) {
 				if (!(e instanceof SocketException))
@@ -112,5 +109,13 @@ public class Router extends Thread {
 		System.arraycopy(user, 0, temp, 0, user.length);
 		temp[user.length] = u;
 		user = temp;
+	}
+	
+	public int getPort(){
+		return id;
+	}
+	
+	public String getRouterName(){
+		return name;
 	}
 }
