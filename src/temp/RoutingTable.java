@@ -1,7 +1,9 @@
 package temp;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.InetSocketAddress;
 
 /**
@@ -40,6 +42,25 @@ public class RoutingTable {
 			System.err.println("Table not recognised from stream");
 			e.printStackTrace();
 		}
+	}
+	
+	public byte[] toByteArray(){
+		ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+		ObjectOutputStream out;
+		byte[] result;
+		
+		try{
+			out = new ObjectOutputStream(byteOut);
+			out.writeObject(table);
+			out.writeObject(tableWeights);
+			result = byteOut.toByteArray();
+			out.flush();
+			return result;
+		}
+		catch(Exception e){
+			e.printStackTrace();
+			return null;
+		}		
 	}
 	
 	/**
@@ -91,11 +112,6 @@ public class RoutingTable {
 				tableWeights[i] = 0;
 			}
 		}
-	}
-	
-	//TODO
-	public void dijkstraAlgorithm(){
-		
 	}
 	
 	/**

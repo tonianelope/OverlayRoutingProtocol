@@ -1,5 +1,7 @@
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
 /**
  * Class describes the functionality of a Routing Table.
@@ -34,6 +36,25 @@ public class RoutingTable {
 			System.err.println("Table not recognised from stream");
 			e.printStackTrace();
 		}
+	}
+	
+	public byte[] toByteArray(){
+		ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+		ObjectOutputStream out;
+		byte[] result;
+		
+		try{
+			out = new ObjectOutputStream(byteOut);
+			out.write(length);
+			out.writeObject(table);
+			result = byteOut.toByteArray();
+			out.flush();
+			return result;
+		}
+		catch(Exception e){
+			e.printStackTrace();
+			return null;
+		}		
 	}
 	
 	/**
