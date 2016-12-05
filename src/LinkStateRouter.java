@@ -8,6 +8,7 @@ public class LinkStateRouter extends Router{
 	
 	private ArrayList<Node> tentative;
 	
+	
 	public LinkStateRouter(String name, int id) {
 		super(name, id);
 	}
@@ -26,19 +27,35 @@ public class LinkStateRouter extends Router{
 	}
 	
 	/**
+	 *	Sends Routing table only to immediate neighbours
+	 *	
+	 */
+	public void sendTable(){
+		
+		for(int i = 0; i<this.neighbors.length; i++){
+			
+		}
+	}
+	
+	/**
 	 * Creates new rtable from received info
 	 */
 	public void createRTable(byte[] data) {
 		tentative = new ArrayList<Node>();
 		//TODO
-		dijkstraAlgorithm();
+		this.table = dijkstraAlgorithm();
 	}
 	
 	//TODO
 	/**
 	 * Creates a new routing table giving the shortest path to each destination using Dijkstra's algorithm;
 	 */
-	public void dijkstraAlgorithm(){
-		
+	public RoutingTable dijkstraAlgorithm(){
+		RoutingTable newTable = new RoutingTable(table.getLength());
+		//TODO add all to tentative
+		while(!tentative.isEmpty()){
+			//TODO
+		}
+		return newTable;
 	}
 }
