@@ -1,5 +1,7 @@
+import java.net.DatagramPacket;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.Arrays;
 /**
  * LinkStateRouter represents a router that uses OSPF to forward packets
  *
@@ -33,7 +35,17 @@ public class LinkStateRouter extends Router{
 	public void sendTable(){
 		
 		for(int i = 0; i<this.neighbors.length; i++){
-			
+			try {
+				/*
+				System.out.println(name+" Sending: " + Arrays.toString(table.toByteArray) + " to " + neighbours[i].getAddr);
+				UDPPacket udp = new UDPPacket(port, destPort, data);
+				DatagramPacket packet = udp.toDatagramPacket();
+				packet.setSocketAddress(routerAdr);
+				socket.send(packet);
+				*/
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	
