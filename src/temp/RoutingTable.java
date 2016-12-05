@@ -9,7 +9,7 @@ import java.net.InetSocketAddress;
 /**
  * Class describes the functionality of a Routing Table.
  * default implementation is a table with 3 columns, |network id|next hop|cost|, and variable rows
- * @version 0.3 pre-Alpha
+ * @version 0.5 Alpha
  */
 public class RoutingTable {
 	public static final int DEFAULT_COLUMNS = 2;
@@ -44,6 +44,10 @@ public class RoutingTable {
 		}
 	}
 	
+	/**
+	 * Serialises this table into a byte array
+	 * @return Table as byte[]
+	 */
 	public byte[] toByteArray(){
 		ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
 		ObjectOutputStream out;
@@ -51,6 +55,7 @@ public class RoutingTable {
 		
 		try{
 			out = new ObjectOutputStream(byteOut);
+			out.write(length);
 			out.writeObject(table);
 			out.writeObject(tableWeights);
 			result = byteOut.toByteArray();
@@ -142,6 +147,29 @@ public class RoutingTable {
 		}
 		//else error
 		return null;
+	}
+	
+	/**
+	 * gets the netID of the destination at given position in table
+	 * @param position in table
+	 */
+	public InetSocketAddress getEntryAt(int pos){
+		return table[pos][0];
+	}
+	
+	/**
+	 * gets the netID of the next hop at given position in table
+	 * @param position in table
+	 */
+	public InetSocketAddress getHopAt(int pos){
+		return table[pos][1];
+	}
+	/**
+	 * gets the cost(distance to) at given position in table
+	 * @param position in table
+	 */
+	public int getCostAt(int pos){
+		return tableWeights[pos];
 	}
 	
 	/**

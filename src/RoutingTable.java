@@ -2,6 +2,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.InetSocketAddress;
 
 /**
  * Class describes the functionality of a Routing Table.
@@ -38,6 +39,10 @@ public class RoutingTable {
 		}
 	}
 	
+	/**
+	 * Serialises this table into a byte array
+	 * @return Table as byte[]
+	 */
 	public byte[] toByteArray(){
 		ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
 		ObjectOutputStream out;
@@ -136,6 +141,25 @@ public class RoutingTable {
 		}
 		//else error
 		return -1;
+	}
+	
+	public int getEntryAt(int pos){
+		return table[pos][0];
+	}
+	
+	/**
+	 * gets the netID of the next hop at given position in table
+	 * @param position in table
+	 */
+	public int getHopAt(int pos){
+		return table[pos][1];
+	}
+	/**
+	 * gets the cost(distance to) at given position in table
+	 * @param position in table
+	 */
+	public int getCostAt(int pos){
+		return table[pos][2];
 	}
 	
 	/**

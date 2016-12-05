@@ -1,3 +1,5 @@
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.net.DatagramPacket;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -17,13 +19,15 @@ public class LinkStateRouter extends Router{
 	
 	//Might be unnecessary
 	/**
-	 * Node represents the pair (IP address, distance) in the network graph
+	 * Node represents the triple (IP address, next hop IP, distance) in the network graph
 	 */
 	private class Node{
 		InetSocketAddress address;
+		InetSocketAddress nextHop;
 		int distance;
-		Node(InetSocketAddress addr, int dist){
+		Node(InetSocketAddress addr, InetSocketAddress next, int dist){
 			address = addr;
+			nextHop = next;
 			distance = dist;
 		}
 	}
@@ -36,13 +40,12 @@ public class LinkStateRouter extends Router{
 		
 		for(int i = 0; i<this.neighbors.length; i++){
 			try {
-				/*
-				System.out.println(name+" Sending: " + Arrays.toString(table.toByteArray) + " to " + neighbours[i].getAddr);
-				UDPPacket udp = new UDPPacket(port, destPort, data);
-				DatagramPacket packet = udp.toDatagramPacket();
-				packet.setSocketAddress(routerAdr);
-				socket.send(packet);
-				*/
+				System.out.println(name+" Sending: " + Arrays.toString(table.toByteArray()) + " to " + neighbors[i].getAddress());
+				//UDPPacket udp = new UDPPacket(port, destPort, data);
+				//DatagramPacket packet = udp.toDatagramPacket();
+				//packet.setSocketAddress(routerAddr);
+				//socket.send(packet);
+				
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -52,10 +55,22 @@ public class LinkStateRouter extends Router{
 	/**
 	 * Creates new rtable from received info
 	 */
-	public void createRTable(byte[] data) {
+	public void createRTable() {
 		tentative = new ArrayList<Node>();
 		//TODO
 		this.table = dijkstraAlgorithm();
+	}
+	
+	public void addToTentative(ObjectInputStream oin){
+		try {
+			temp.RoutingTable newIn = new temp.RoutingTable(oin);
+			for(int i =0; i<newIn.getLength(); i++){
+				tentative.add(new Node(newIn.getEntryAt(i), newIn.getHopAt(i), newIn.getCostAt(i)));
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
 	}
 	
 	//TODO

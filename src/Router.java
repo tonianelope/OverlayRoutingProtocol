@@ -126,4 +126,12 @@ public class Router extends Thread {
 	public String getRouterName(){
 		return name;
 	}
+
+	public InetSocketAddress getAddress() {
+		return address;
+	}
+
+	public void setAddress(InetSocketAddress address) {
+		this.address = address;
+	}
 }
