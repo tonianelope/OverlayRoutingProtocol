@@ -2,6 +2,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.DatagramPacket;
 import java.net.InetSocketAddress;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Arrays;
 /**
@@ -32,9 +33,26 @@ public class LinkStateRouter extends Router{
 		}
 	}
 	
+	@Override
+	public void run(){
+		System.out.println("Running: " + name);
+		while (true) {
+			DatagramPacket p = new DatagramPacket(new byte[PACKETSIZE], PACKETSIZE);
+			try {
+				socket.receive(p);
+				forwardMessage(p);
+			} catch (Exception e) {
+				if (!(e instanceof SocketException))
+					e.printStackTrace();
+			}
+			
+			
+		}
+	}
+	
 	/**
 	 *	Sends Routing table only to immediate neighbours
-	 *	
+	 *	@deprecated Only included in case its needed in future. currently does nothing
 	 */
 	public void sendTable(){
 		
@@ -72,6 +90,14 @@ public class LinkStateRouter extends Router{
 		}
 		
 	}
+	
+	/**
+	 * Sends neighbours 
+	 */
+	public void sendNeighbours(){
+		//TODO
+	}
+	
 	
 	//TODO
 	/**
