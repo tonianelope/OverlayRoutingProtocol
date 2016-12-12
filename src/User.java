@@ -10,17 +10,18 @@ public class User extends Thread{
 
 	private String name;
 	private int port;
-	InetSocketAddress routerAdr;
+	private InetSocketAddress routerAdr;
+	private InetSocketAddress myAdr;
 	private InetAddress address;
 
 	DatagramSocket socket;
 
-	public User(String name, int port, Router router) {
+	public User(String name, InetSocketAddress adr, Router router) {
 		try {
 			this.name = name;
-			this.port = port;
-			routerAdr = new InetSocketAddress("localhost",router.getPort());
-			socket = new DatagramSocket(port);
+			this.myAdr = adr;
+			routerAdr = router.getAddress();
+			socket = new DatagramSocket(myAdr.getPort());
 			//run();
 			router.join(this);
 			System.out.println("Creating: "+name);
@@ -48,11 +49,11 @@ public class User extends Thread{
 
 	}
 
-	public void send(int destPort, byte[] data) {
+	public void send(InetSocketAddress dest, byte[] data) {
 		try {
-			System.out.println(name+" Sending: " + Arrays.toString(data) + " to " + destPort);
-			UDPPacket udp = new UDPPacket(port, destPort, data);
-			DatagramPacket packet = udp.toDatagramPacket();
+			System.out.println(name+" Sending: " + Arrays.toString(data) + " to " + dest);
+			Packet p = new Packet(myAdr, dest, data);
+			DatagramPacket packet = p.toDatagramPacket();
 			packet.setSocketAddress(routerAdr);
 			socket.send(packet);
 		} catch (Exception e) {
@@ -61,10 +62,9 @@ public class User extends Thread{
 	}
 
 	public void receive(DatagramPacket p) throws Exception{
-		UDPPacket udp = UDPPacket.fromDatagramPacket(p);
-		byte[] data = udp.getData();
+		Packet packet = Packet.fromDatagramPacket(p);
+		byte[] data = packet.getData();
 		System.out.println(name+" received "+new String(data, "UTF-8"));
 		
 	}
-
 }
