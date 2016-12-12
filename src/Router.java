@@ -8,22 +8,24 @@ public class Router extends Thread {
 	public static final int RTABLE_RESEND_INTERVAL = 10000; //10 s, 10000 ms
 
 	String name;
-	int id; // id static?
+	int id;
 	Router[] neighbors;
 	User[] user;
 	DatagramSocket socket;
 	RoutingTable table;
 	private InetSocketAddress address;
+	
 	/**
 	 *
 	 * @param name
-	 * @param id?
+	 * @param id
+	 * 		- ip and port
 	 * 
 	 */
-	public Router(String name, int id) {
+	public Router(String name, InetSocketAddress id) {
 		try {
 			this.name = name;
-			this.id = id;
+			this.address = id;
 			this.user = new User[0];
 			this.neighbors = new Router[0];
 			socket = new DatagramSocket(id);
@@ -39,14 +41,18 @@ public class Router extends Thread {
 
 	}
 
+	/**
+	 * 
+	 * @param p
+	 */
 	public void forwardMessage(DatagramPacket p) {
 		try {
-			UDPPacket udp = UDPPacket.fromDatagramPacket(p);
-			int dest = udp.getDest();
+			Packet packet = Packet.fromDatagramPacket(p);
+			InetSocketAddress dest = packet.getDest();
 			System.out.println("Received for: "+dest);
 
-			int hop = table.getNextHop(dest);
-			if (hop == id) {
+			InetSocketAddress hop = table.getNextHop(dest);
+			if (hop == address) {
 				hop = dest;
 			}
 			// check checksum?
@@ -54,7 +60,7 @@ public class Router extends Thread {
 			// Sets the SocketAddress (usually IP address + port number) of the
 			// remote host to which this datagram is being sent.
 			System.out.println("Hop: " + hop);
-			p.setSocketAddress(new InetSocketAddress("localhost",hop));
+			p.setSocketAddress(hop);
 			socket.send(p);
 		} catch (Exception e) {
 			System.err.println("ERROR can't forward packet");
@@ -75,30 +81,14 @@ public class Router extends Thread {
 			}
 		}
 	}
-
-	// public void forwarMessage(DatagramPacket p){
-	// //get packet destination/address
-	// IPv4Packet packet = IPv4Packet.fromDatagramPacket(p);
-	// int dest = packet.getDest();
-	// int hop = RoutingTable.getNextHop(dest);
-	//
-	// if(hop == id){
-	// hop = dest;
-	// }
-	// //decrese time to live
-	// //change checksum
-	// //if(timeToLife>0);
-	// p.setSocketAddress(dest); //???? whats the param
-	// socket.send(p);
-	// //lookup destination in routing table
-	// //send to next hop
-	// }
-
+	
 	public void addNeighbor(Router n) {
 		Router[] temp = new Router[neighbors.length + 1];
 		System.arraycopy(neighbors, 0, temp, 0, neighbors.length);
 		temp[neighbors.length] = n;
 		neighbors = temp;
+		//table.addEntry(destID, nextHopID, cost); needs change to InetAddresss
+		
 	}
 	
 	/**
@@ -117,10 +107,12 @@ public class Router extends Thread {
 		System.arraycopy(user, 0, temp, 0, user.length);
 		temp[user.length] = u;
 		user = temp;
+		//table.addEntry(destID, nextHopID, cost); needs change to InetAddresss
+
 	}
 	
 	public int getPort(){
-		return id;
+		return address.getPort();
 	}
 	
 	public String getRouterName(){
