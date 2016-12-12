@@ -1,5 +1,3 @@
-package temp;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -9,13 +7,12 @@ import java.net.InetSocketAddress;
 /**
  * Class describes the functionality of a Routing Table.
  * default implementation is a table with 3 columns, |network id|next hop|cost|, and variable rows
- * @version 0.5 Alpha
+ * @version 0.3 pre-Alpha
  */
 public class RoutingTable {
-	public static final int DEFAULT_COLUMNS = 2;
+	public static final int DEFAULT_COLUMNS = 3;
 	
-	private InetSocketAddress[][] table;
-	private int[] tableWeights;
+	private int[][] table;
 	private int length;
 	/**
 	 * Creates a new, empty routing table with the specified length
@@ -23,8 +20,7 @@ public class RoutingTable {
 	 */
 	public RoutingTable(int length){
 		this.length = length;
-		table = new InetSocketAddress[length][DEFAULT_COLUMNS];
-		tableWeights = new int [length];
+		table = new int[length][DEFAULT_COLUMNS];
 	}
 		
 	/**
@@ -35,8 +31,7 @@ public class RoutingTable {
 	public RoutingTable(ObjectInputStream in) throws IOException{
 		this.length = in.readInt();
 		try {
-			this.table = (InetSocketAddress[][]) in.readObject();
-			this.tableWeights = (int[]) in.readObject();
+			this.table = (int[][]) in.readObject();
 		} 
 		catch (ClassNotFoundException e) {
 			System.err.println("Table not recognised from stream");
@@ -57,7 +52,6 @@ public class RoutingTable {
 			out = new ObjectOutputStream(byteOut);
 			out.write(length);
 			out.writeObject(table);
-			out.writeObject(tableWeights);
 			result = byteOut.toByteArray();
 			out.flush();
 			return result;
@@ -73,21 +67,21 @@ public class RoutingTable {
 	 * If there is no space, the table is extended
 	 * Warning: untested
 	 */
-	public void addEntry(InetSocketAddress destID, InetSocketAddress nextHopID, int cost){
+	public void addEntry(int destID, int nextHopID, int cost){
 		int i = 0;
 		boolean added = false;
 		while(i < this.length && !added){
-			if(table[i][0].equals(null)){
+			if(table[i][0] == 0){
 				table[i][0] = destID;
 				table[i][1] = nextHopID;
-				tableWeights[i] = cost;
+				table[i][2] = cost;
 				added = true;
 			}
 			i++;
 		}
 		if(!added){
-			InetSocketAddress[][] temp = table;
-			table = new InetSocketAddress[++length][DEFAULT_COLUMNS];
+			int[][] temp = table;
+			table = new int[++length][2];
 			System.arraycopy(temp, 0, table, 0, temp.length);
 		}
 	}
@@ -96,11 +90,11 @@ public class RoutingTable {
 	 * Updates an existing entry in the routing table
 	 * Does nothing if entry is not in table
 	 */
-	public void updateEntry(InetSocketAddress destID, InetSocketAddress newNextHop, int newCost){
+	public void updateEntry(int destID, int newNextHop, int newCost){
 		for(int i = 0; i<this.length; i++){
-			if(table[i][0].equals(destID)){
+			if(table[i][0] == destID){
 				table[i][1] = newNextHop;
-				tableWeights[i] = newCost;
+				table[i][2] = newCost;
 			}
 		}
 	}
@@ -109,12 +103,12 @@ public class RoutingTable {
 	 * Completely deletes an existing entry in the routing table
 	 * Does nothing if entry is not in table
 	 */
-	public void deleteEntry(InetSocketAddress destID){
+	public void deleteEntry(int destID){
 		for(int i = 0; i<this.length; i++){
-			if(table[i][0].equals(destID)){
-				table[i][0] = null;
-				table[i][1] = null;
-				tableWeights[i] = 0;
+			if(table[i][0] == destID){
+				table[i][0] = 0;
+				table[i][1] = 0;
+				table[i][2] = 0;
 			}
 		}
 	}
@@ -124,10 +118,10 @@ public class RoutingTable {
 	 * Returns -1 if ID is not found in routing table
 	 * @param netID 
 	 */
-	public int costTo(InetSocketAddress netID){
+	public int costTo(int netID){
 		for(int i = 0; i<this.length; i++){
-			if(table[i][0].equals(netID)){
-				return tableWeights[i];
+			if(table[i][0] == netID){
+				return table[i][2];
 			}
 		}
 		//else error
@@ -139,21 +133,17 @@ public class RoutingTable {
 	 * Returns -1 if given netID is not found in routing table
 	 * @param netID 
 	 */
-	public InetSocketAddress getNextHop(InetSocketAddress netID){
+	public int getNextHop(int netID){
 		for(int i = 0; i<this.length; i++){
-			if(table[i][0].equals(netID)){
+			if(table[i][0] == netID){
 				return table[i][1];
 			}
 		}
 		//else error
-		return null;
+		return -1;
 	}
 	
-	/**
-	 * gets the netID of the destination at given position in table
-	 * @param position in table
-	 */
-	public InetSocketAddress getEntryAt(int pos){
+	public int getEntryAt(int pos){
 		return table[pos][0];
 	}
 	
@@ -161,7 +151,7 @@ public class RoutingTable {
 	 * gets the netID of the next hop at given position in table
 	 * @param position in table
 	 */
-	public InetSocketAddress getHopAt(int pos){
+	public int getHopAt(int pos){
 		return table[pos][1];
 	}
 	/**
@@ -169,21 +159,14 @@ public class RoutingTable {
 	 * @param position in table
 	 */
 	public int getCostAt(int pos){
-		return tableWeights[pos];
+		return table[pos][2];
 	}
 	
 	/**
 	 * returns the table array
 	 */
-	public InetSocketAddress[][] getTable(){
+	public int[][] getTable(){
 		return this.table;
-	}
-	
-	/**
-	 * returns the table costs
-	 */
-	public int[] getTableCosts(){
-		return this.tableWeights;
 	}
 	/**
 	 * returns the length of the table
@@ -197,7 +180,7 @@ public class RoutingTable {
 		String result = "[";
 		
 		for(int i=0; i<this.length; i++){
-			if(!table[i][0].equals(null)){
+			if(table[i][0] != 0){
 				result = result.concat(table[i][0] +"|"+ table[i][1] +"|"+ table[i][2] + ";");
 			}
 		}
