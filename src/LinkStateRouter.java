@@ -14,7 +14,7 @@ public class LinkStateRouter extends Router{
 	private ArrayList<Node> tentative;
 	
 	
-	public LinkStateRouter(String name, int id) {
+	public LinkStateRouter(String name, InetSocketAddress id) {
 		super(name, id);
 	}
 	
@@ -81,7 +81,7 @@ public class LinkStateRouter extends Router{
 	
 	public void addToTentative(ObjectInputStream oin){
 		try {
-			temp.RoutingTable newIn = new temp.RoutingTable(oin);
+			RoutingTable newIn = new RoutingTable(oin);
 			for(int i =0; i<newIn.getLength(); i++){
 				tentative.add(new Node(newIn.getEntryAt(i), newIn.getHopAt(i), newIn.getCostAt(i)));
 			}
