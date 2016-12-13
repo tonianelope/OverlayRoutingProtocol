@@ -25,6 +25,7 @@ public class Packet {
 			udph = new UDPHeader(oin);
 			ipv4h = new IPv4Header(oin);
 			int length = oin.readInt();
+			data = new byte[length];
 			for(int i = 0; i<length; i++){
 				this.data[i] = oin.readByte();
 			}
@@ -47,6 +48,7 @@ public class Packet {
 			udph.toObjectOutputStream(oout);
 			ipv4h.toObjectOutputStream(oout);
 			
+			oout.writeInt(data.length);
 			oout.write(data); // write type to stream
 			
 			oout.flush();

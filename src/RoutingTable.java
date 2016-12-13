@@ -1,4 +1,3 @@
-package temp;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -17,6 +16,7 @@ public class RoutingTable {
 	private InetSocketAddress[][] table;
 	private int[] tableWeights;
 	private int length;
+	private int nextEntry;
 	/**
 	 * Creates a new, empty routing table with the specified length
 	 * @param length
@@ -25,6 +25,7 @@ public class RoutingTable {
 		this.length = length;
 		table = new InetSocketAddress[length][DEFAULT_COLUMNS];
 		tableWeights = new int [length];
+		nextEntry = 0;
 	}
 		
 	/**
@@ -76,19 +77,26 @@ public class RoutingTable {
 	public void addEntry(InetSocketAddress destID, InetSocketAddress nextHopID, int cost){
 		int i = 0;
 		boolean added = false;
-		while(i < this.length && !added){
-			if(table[i][0].equals(null)){
-				table[i][0] = destID;
-				table[i][1] = nextHopID;
-				tableWeights[i] = cost;
-				added = true;
-			}
-			i++;
-		}
-		if(!added){
+		
+//		while(i < this.length && !added){ 
+//			if(table[i][0].equals(null)){ //this throws a nullpointer exception
+//				table[i][0] = destID;
+//				table[i][1] = nextHopID;
+//				tableWeights[i] = cost;
+//				added = true;
+//			}
+//			i++;
+//		}
+//		if(!added){
+		if(nextEntry>=length){
 			InetSocketAddress[][] temp = table;
 			table = new InetSocketAddress[++length][DEFAULT_COLUMNS];
 			System.arraycopy(temp, 0, table, 0, temp.length);
+		}else{
+			table[nextEntry][0] = destID;
+			table[nextEntry][1] = nextHopID;
+			tableWeights[nextEntry] = cost;
+			nextEntry++;
 		}
 	}
 	
@@ -140,7 +148,7 @@ public class RoutingTable {
 	 * @param netID 
 	 */
 	public InetSocketAddress getNextHop(InetSocketAddress netID){
-		for(int i = 0; i<this.length; i++){
+		for(int i = 0; i<this.nextEntry; i++){
 			if(table[i][0].equals(netID)){
 				return table[i][1];
 			}

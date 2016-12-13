@@ -13,26 +13,34 @@ public class MainRoutingProtocol {
 	static final int PORT_8 = 50007;
 		
 	public static void main(String[] args) {
+		
+		
 		System.out.println("Start:");
-		Router rOne = new Router("Bruke", PORT_1);
-		User one = new User("Alice", PORT_2, rOne);
-		Router rTwo = new Router("Walsh", PORT_3);
-		User two = new User("Bob", PORT_4, rTwo);
+		Router rOne = new Router("Bruke", new InetSocketAddress("localhost",PORT_1));
+		User one = new User("Alice", new InetSocketAddress("localhost",PORT_2), rOne);
+		Router rTwo = new Router("Walsh", new InetSocketAddress("localhost",PORT_3));
+		User two = new User("Bob",new InetSocketAddress("localhost",PORT_4), rTwo);
+		
+		InetSocketAddress a1 = new InetSocketAddress("localhost",PORT_1);
+		InetSocketAddress a2 = new InetSocketAddress("localhost",PORT_2);
+		InetSocketAddress a3 = new InetSocketAddress("localhost",PORT_3);
+		InetSocketAddress a4 = new InetSocketAddress("localhost",PORT_4);
+
 		
 		RoutingTable t1 = new RoutingTable(4);
 		RoutingTable t2 = new RoutingTable(4);
 		
-		t1.addEntry(PORT_1, PORT_1, 0);
-		t1.addEntry(PORT_2, PORT_1, 1);
-		t1.addEntry(PORT_3, PORT_3, 1);
-		t1.addEntry(PORT_4, PORT_3, 2);
+		t1.addEntry(a1, a1, 0);
+		t1.addEntry(a2, a1, 1);
+		t1.addEntry(a3, a3, 1);
+		t1.addEntry(a4, a3, 2);
 		
 		rOne.setTable(t1);
 		
-		t2.addEntry(PORT_3, PORT_3, 0);
-		t2.addEntry(PORT_4, PORT_3, 1);
-		t2.addEntry(PORT_1, PORT_1, 1);
-		t2.addEntry(PORT_2, PORT_1, 2);
+		t2.addEntry(a3, a3, 0);
+		t2.addEntry(a4, a3, 1);
+		t2.addEntry(a1, a1, 1);
+		t2.addEntry(a2, a1, 2);
 		
 		rTwo.setTable(t2);
 		
@@ -49,12 +57,12 @@ public class MainRoutingProtocol {
 		String s = "Hello, Bob";
 		byte[] data = s.getBytes();
 		//System.out.println(Arrays.toString(data));
-		one.send(PORT_4, data);
+		one.send(a4, data);
 		
 		s = "Hello, Alcie";
 		data = s.getBytes();
 		//System.out.println(Arrays.toString(data));
-		two.send(PORT_2, data);
+		two.send(a2, data);
 	}
 
 }

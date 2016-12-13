@@ -33,7 +33,7 @@ public class IPv4Header{
   }
   
   /**
-   * reads header info from ObjectInputStream
+   * reads header info from ObjectInputStream 1
    * 
    * @param oin
    */
@@ -78,5 +78,7 @@ public class IPv4Header{
   public int getHChecksum(){
     return this.hChecksum;
   }
+  
+
   
 }

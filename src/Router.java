@@ -19,7 +19,7 @@ public class Router extends Thread {
 	 *
 	 * @param name
 	 * @param id
-	 * 		- ip and port
+	 * 		- ip and port 1
 	 * 
 	 */
 	public Router(String name, InetSocketAddress id) {
@@ -28,7 +28,7 @@ public class Router extends Thread {
 			this.address = id;
 			this.user = new User[0];
 			this.neighbors = new Router[0];
-			socket = new DatagramSocket(id);
+			socket = new DatagramSocket(address.getPort());
 			// run();
 			System.out.println("Creating: " + name);
 		} catch (Exception e) {
@@ -49,10 +49,10 @@ public class Router extends Thread {
 		try {
 			Packet packet = Packet.fromDatagramPacket(p);
 			InetSocketAddress dest = packet.getDest();
-			System.out.println("Received for: "+dest);
+			System.out.println(name+" Received for: "+dest);
 
 			InetSocketAddress hop = table.getNextHop(dest);
-			if (hop == address) {
+			if (hop.equals(address)) {
 				hop = dest;
 			}
 			// check checksum?
@@ -63,7 +63,7 @@ public class Router extends Thread {
 			p.setSocketAddress(hop);
 			socket.send(p);
 		} catch (Exception e) {
-			System.err.println("ERROR can't forward packet");
+			System.err.println(name+" ERROR can't forward packet");
 			e.printStackTrace();
 		}
 	}

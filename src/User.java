@@ -54,6 +54,7 @@ public class User extends Thread{
 			System.out.println(name+" Sending: " + Arrays.toString(data) + " to " + dest);
 			Packet p = new Packet(myAdr, dest, data);
 			DatagramPacket packet = p.toDatagramPacket();
+			System.out.println("Router "+routerAdr);
 			packet.setSocketAddress(routerAdr);
 			socket.send(packet);
 		} catch (Exception e) {
@@ -67,4 +68,5 @@ public class User extends Thread{
 		System.out.println(name+" received "+new String(data, "UTF-8"));
 		
 	}
+
 }
