@@ -1,7 +1,9 @@
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
+import java.util.Scanner;
 import java.net.DatagramPacket;
+import tcdIO.*;
 
 public class Router extends Thread {
 	static final int PACKETSIZE = 65536;
@@ -14,6 +16,7 @@ public class Router extends Thread {
 	DatagramSocket socket;
 	RoutingTable table;
 	private InetSocketAddress address;
+	Terminal terminal;
 	
 	/**
 	 *
@@ -31,6 +34,7 @@ public class Router extends Thread {
 			socket = new DatagramSocket(address.getPort());
 			// run();
 			System.out.println("Creating: " + name);
+			terminal = new Terminal(this.name);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -50,7 +54,7 @@ public class Router extends Thread {
 			Packet packet = Packet.fromDatagramPacket(p);
 			InetSocketAddress dest = packet.getDest();
 			System.out.println(name+" Received for: "+dest);
-
+			terminal.println("Received for: "+dest);
 			InetSocketAddress hop = table.getNextHop(dest);
 			if (hop.equals(address)) {
 				hop = dest;
@@ -60,6 +64,7 @@ public class Router extends Thread {
 			// Sets the SocketAddress (usually IP address + port number) of the
 			// remote host to which this datagram is being sent.
 			System.out.println("Hop: " + hop);
+			terminal.println("Forwarding to: "+hop);
 			p.setSocketAddress(hop);
 			socket.send(p);
 		} catch (Exception e) {
@@ -107,6 +112,7 @@ public class Router extends Thread {
 		System.arraycopy(user, 0, temp, 0, user.length);
 		temp[user.length] = u;
 		user = temp;
+		u.setRouter(this);
 		//table.addEntry(destID, nextHopID, cost); needs change to InetAddresss
 
 	}
@@ -125,5 +131,23 @@ public class Router extends Thread {
 
 	public void setAddress(InetSocketAddress address) {
 		this.address = address;
+	}
+	
+	/*
+	 * creates router in a (currently) fixed topology
+	 */
+	public void main(String[] args){
+		InetSocketAddress id =  new InetSocketAddress(args[1], Integer.parseInt(args[2]));
+		Router r = new Router(args[0], id);
+		boolean close = false;
+		Scanner sc = new Scanner(System.in);
+		while(!close){
+			if(sc.hasNext("c")) close = true;
+			else if(sc.hasNext("add")){
+				sc.next();
+				r.addNeighbor(new Router(sc.next(), new InetSocketAddress(sc.next(), sc.nextInt())));
+			}
+		}
+		sc.close();
 	}
 }
