@@ -8,8 +8,8 @@ import java.net.InetSocketAddress;
 
 public class Packet {
 
-	private static UDPHeader udph;
-	private static IPv4Header ipv4h;
+	private  UDPHeader udph;
+	private  IPv4Header ipv4h;
 	private byte[] data;
 	private int type; 
 	//Type to idetify routingTable or message packet? 1
