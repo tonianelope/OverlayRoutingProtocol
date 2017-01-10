@@ -5,20 +5,20 @@ import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Arrays;
+
 /**
  * LinkStateRouter represents a router that uses OSPF to forward packets
  *
  */
 public class LinkStateRouter extends Router{
 	
-	private ArrayList<Node> tentative;
-	
+	private ArrayList<Node> temporaryList;
 	
 	public LinkStateRouter(String name, InetSocketAddress id) {
 		super(name, id);
+		temporaryList = new ArrayList<Node>();
 	}
 	
-	//Might be unnecessary
 	/**
 	 * Node represents the triple (IP address, next hop IP, distance) in the network graph
 	 */
@@ -34,7 +34,7 @@ public class LinkStateRouter extends Router{
 	}
 	
 	@Override
-	public void run(){
+	public void run() {
 		System.out.println("Running: " + name);
 		while (true) {
 			DatagramPacket p = new DatagramPacket(new byte[PACKETSIZE], PACKETSIZE);
@@ -45,13 +45,11 @@ public class LinkStateRouter extends Router{
 				if (!(e instanceof SocketException))
 					e.printStackTrace();
 			}
-			
-			
 		}
 	}
 	
 	/**
-	 *	Sends Routing table only to immediate neighbours
+	 *	Sends distance to immediate neighbours
 	 *	@deprecated Only included in case its needed in future. currently does nothing
 	 */
 	public void sendTable(){
@@ -74,16 +72,15 @@ public class LinkStateRouter extends Router{
 	 * Creates new rtable from received info
 	 */
 	public void createRTable() {
-		tentative = new ArrayList<Node>();
 		//TODO
 		this.table = dijkstraAlgorithm();
 	}
 	
-	public void addToTentative(ObjectInputStream oin){
+	public void addToTemporaryList(ObjectInputStream oin){
 		try {
 			RoutingTable newIn = new RoutingTable(oin);
 			for(int i =0; i<newIn.getLength(); i++){
-				tentative.add(new Node(newIn.getEntryAt(i), newIn.getHopAt(i), newIn.getCostAt(i)));
+				temporaryList.add(new Node(newIn.getEntryAt(i), newIn.getHopAt(i), newIn.getCostAt(i)));
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -99,16 +96,39 @@ public class LinkStateRouter extends Router{
 	}
 	
 	
-	//TODO
+	//TODO needs testing
 	/**
 	 * Creates a new routing table giving the shortest path to each destination using Dijkstra's algorithm;
 	 */
 	public RoutingTable dijkstraAlgorithm(){
 		RoutingTable newTable = new RoutingTable(table.getLength());
-		//TODO add all to tentative
-		while(!tentative.isEmpty()){
-			//TODO
+		newTable.addEntry(this.getAddress(), this.getAddress(), 0);
+		ArrayList<Node> tentative = new ArrayList<Node>();
+		int count = 1;
+		
+		while(count != newTable.getLength()){
+			for(int i = 0; i<temporaryList.size(); i++){
+				if(temporaryList.get(i).address.equals(newTable.getEntryAt(count)) || temporaryList.get(i).nextHop.equals(newTable.getEntryAt(count))){
+					Node newNode = (temporaryList.get(i));
+					newNode.distance = newNode.distance + newTable.getCostAt(i);
+					tentative.add(newNode);
+				}
+			}
+			Node smallest = tentative.get(0);
+			int indexOfSmallest = 0;
+			for(int i = 0; i<tentative.size(); i++){
+				if (tentative.get(i).distance < smallest.distance){
+					smallest = tentative.get(i);
+					indexOfSmallest = i;
+				}
+			}
+			if(smallest != null){
+				newTable.addEntry(smallest.address, smallest.nextHop, smallest.distance);
+				tentative.remove(indexOfSmallest);
+				count++;
+			}
 		}
+		
 		return newTable;
 	}
 }
