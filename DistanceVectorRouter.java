@@ -11,23 +11,25 @@ public class DistanceVectorRouter extends Router{
 	public static final int RTABLE_RESEND_INTERVAL = 10000;
 	
 	String name;
-	int id; 
-	Router[] neighbors;
-	User[] user;
+	int id,cost = 0; 
+	DistanceVectorRouter[] neighbors;
+	User[] users;
 	DatagramSocket socket;
 	RoutingTable table;
 	private InetSocketAddress address;
 	
-	public DistanceVectorRouter(String name, int id) {
+	public DistanceVectorRouter(String name, int id , int totalUsers) {
 		super(name, id);
 		try {
 			this.name = name;
 			this.id = id;
-			this.user = new User[0];
-			this.neighbors = new Router[0];
+			this.cost++;
+			this.users = new User[0];
+			this.neighbors = new DistanceVectorRouter[0];
 			socket = new DatagramSocket(id);
 			// run();
 			System.out.println("Creating: " + name);
+			createTable(totalUsers);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -92,13 +94,50 @@ public class DistanceVectorRouter extends Router{
 	// //send to next hop
 	// }
 
-	public void addNeighbor(Router n) {
-		Router[] temp = new Router[neighbors.length + 1];
+	/**
+	 * Creates Routing table of neighbors and users
+	 */
+	public void createTable(int length){
+		this.table = new RoutingTable(length);
+	}
+	
+	/**
+	 *  Adds new router into routing table
+	 */
+	public void addNeighbor(DistanceVectorRouter n) {
+		DistanceVectorRouter[] temp = new DistanceVectorRouter[neighbors.length + 1];
 		System.arraycopy(neighbors, 0, temp, 0, neighbors.length);
 		temp[neighbors.length] = n;
 		neighbors = temp;
+		for(int i = 0; i < n.neighbors.length; i++)
+		{
+			addUsers(n.users[i], n);
+			cost++;
+		}
 	}
 	
+	/**
+	 * Add new user to routing table
+	 * @param user to be added
+	 */
+	public void addUsers(User user, DistanceVectorRouter r)
+	{
+		User[] tempUsers = new User[users.length + 1];
+		System.arraycopy(users, 0, tempUsers, 0, users.length);
+		tempUsers[users.length] = user;
+		users = tempUsers;
+		for(int i = 0; i < users.length; i++)
+		{
+			table.addEntry(users[i].value, r.id, cost);
+		}
+	}
+	
+	/**
+	 * Updates routing table
+	 */
+	public void updateTable(){
+
+	}
 	/**
 	 * Sends this router's current routing table to all neighbours
 	 */
