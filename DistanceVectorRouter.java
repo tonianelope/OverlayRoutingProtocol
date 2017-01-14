@@ -2,6 +2,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
+import java.util.Arrays;
 
 /**
  * DistanceVectorRouter represents a router that uses RIP to forward packets
@@ -105,15 +106,28 @@ public class DistanceVectorRouter extends Router{
 	 *  Adds new router into routing table
 	 */
 	public void addNeighbor(DistanceVectorRouter n) {
+		boolean added = false;
+		int i = 0;
 		DistanceVectorRouter[] temp = new DistanceVectorRouter[neighbors.length + 1];
 		System.arraycopy(neighbors, 0, temp, 0, neighbors.length);
-		temp[neighbors.length] = n;
-		neighbors = temp;
-		for(int i = 0; i < n.neighbors.length; i++)
+		while(!added && i < neighbors.length)
 		{
-			addUsers(n.users[i], n);
+			if(neighbors[i].id == n.id )
+			{
+				added = true;
+			}
+		}
+		if(!added)
+		{
+			temp[neighbors.length] = n;
+			neighbors = temp;	
+			for(i = 0; i < n.neighbors.length; i++)
+			{
+				addUsers(n.users[i], n);
+			}
 			cost++;
 		}
+		else System.out.println(n.name + " already neighbour.");
 	}
 	
 	/**
@@ -122,14 +136,28 @@ public class DistanceVectorRouter extends Router{
 	 */
 	public void addUsers(User user, DistanceVectorRouter r)
 	{
+		boolean added = false;
+		int i = 0;
 		User[] tempUsers = new User[users.length + 1];
 		System.arraycopy(users, 0, tempUsers, 0, users.length);
-		tempUsers[users.length] = user;
-		users = tempUsers;
-		for(int i = 0; i < users.length; i++)
+		while(!added && i < users.length)
 		{
-			table.addEntry(users[i].value, r.id, cost);
+			if(users[i] == user )
+			{
+				added = true;
+			}
 		}
+		if(!added)
+		{
+			tempUsers[users.length] = user;
+			users = tempUsers;	
+			for(i = 0; i < users.length; i++)
+			{
+				table.addEntry(users[i].value, r.id, cost);
+			}
+		}
+		else System.out.println(r.name + " already user.");
+
 	}
 	
 	/**
@@ -142,7 +170,18 @@ public class DistanceVectorRouter extends Router{
 	 * Sends this router's current routing table to all neighbours
 	 */
 	public void sendTable(){
-		
+		for(int i = 0; i<this.neighbors.length; i++){
+			try {
+				System.out.println(name+" Sending: " + Arrays.toString(table.toByteArray()) + " to " + neighbors[i].getAddress());
+				//UDPPacket udp = new UDPPacket(port, destPort, data);
+				//DatagramPacket packet = udp.toDatagramPacket();
+				//packet.setSocketAddress(routerAddr);
+				//socket.send(packet);
+				
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	public void setTable(RoutingTable t) {
