@@ -1,3 +1,4 @@
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -53,30 +54,9 @@ public class LinkStateRouter extends Router{
 	}
 	
 	/**
-	 *	Sends distance to immediate neighbours
-	 *	@deprecated Only included in case its needed in future. currently does nothing
-	 */
-	public void sendTable(){
-		
-		for(int i = 0; i<this.neighbors.length; i++){
-			try {
-				System.out.println(name+" Sending: " + Arrays.toString(table.toByteArray()) + " to " + neighbors[i].getAddress());
-				//UDPPacket udp = new UDPPacket(port, destPort, data);
-				//DatagramPacket packet = udp.toDatagramPacket();
-				//packet.setSocketAddress(routerAddr);
-				//socket.send(packet);
-				
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-	}
-	
-	/**
 	 * Creates new rtable from received info
 	 */
 	public void createRTable() {
-		//TODO
 		this.table = dijkstraAlgorithm();
 	}
 	
@@ -174,7 +154,27 @@ public class LinkStateRouter extends Router{
 
 	@Override
 	void receiveTable(DatagramPacket p) {
-		// TODO Auto-generated method stub
+
+		Packet packet = Packet.fromDatagramPacket(p);
+		byte[] data = packet.getData();
 		
+		ByteArrayInputStream bin = new ByteArrayInputStream(data);
+		try {
+			ObjectInputStream oin = new ObjectInputStream(bin);
+			int sNum = oin.readInt();
+			//if(sNum > prevSNum){									//will add
+			
+			int numOfNodes = oin.readInt();
+			Node[] neighbourNodes = (Node[]) oin.readObject();
+			
+			for(int i = 0; i<numOfNodes; i++){
+				temporaryList.add(neighbourNodes[i]);
+			}
+			//}
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}		
 	}
 }
