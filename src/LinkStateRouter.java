@@ -1,5 +1,7 @@
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.DatagramPacket;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
@@ -13,10 +15,12 @@ import java.util.Arrays;
 public class LinkStateRouter extends Router{
 	
 	private ArrayList<Node> temporaryList;
+	private int seqNum;
 	
 	public LinkStateRouter(String name, InetSocketAddress id) {
 		super(name, id);
 		temporaryList = new ArrayList<Node>();
+		seqNum = 0;
 	}
 	
 	/**
@@ -92,7 +96,43 @@ public class LinkStateRouter extends Router{
 	 * Sends neighbours 
 	 */
 	public void sendNeighbours(){
-		//TODO
+		
+		int numOfNodes = this.neighbors.length;
+		
+		Node[] neighbourNodes = new Node[numOfNodes];
+		
+		for(int i = 0; i<this.neighbors.length; i++){
+			int cost = table.costTo(this.neighbors[i].getAddress());
+			Node neighbourNode = new Node(this.getAddress(), this.neighbors[i].getAddress(), cost);
+			neighbourNodes[i] = neighbourNode;
+		}
+		
+		ObjectOutputStream oout;
+		ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+		try{
+			oout = new ObjectOutputStream(byteOut);
+			oout.writeInt(seqNum++);						//seqNum prevents infintite loops
+			oout.writeInt(numOfNodes);
+			oout.writeObject(neighbourNodes);
+			oout.flush();
+			
+			byte[] data = byteOut.toByteArray();
+			
+			for(int i = 0; i<table.getLength(); i++){
+				
+				if(table.getEntryAt(i) != this.getAddress()){
+					Packet p = new Packet(this.getAddress(), table.getEntryAt(i), data);
+					DatagramPacket packet = p.toDatagramPacket();
+					System.out.println("Router "+this.getAddress()+" sending neighbours in OSPF to " + table.getEntryAt(i));
+					packet.setSocketAddress(table.getHopAt(i));
+					socket.send(packet);
+				}
+			}
+		}
+		catch(Exception e){
+			e.printStackTrace();
+		}
+		
 	}
 	
 	
