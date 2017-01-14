@@ -18,7 +18,6 @@ public class User extends Thread{
 	private int port;
 	private InetSocketAddress routerAdr;
 	private InetSocketAddress myAdr;
-	private InetAddress address;
 	static String[] users = new String[20];
 	static int numOfUsers;
 	static InetSocketAddress[] addresses = new InetSocketAddress[20];
@@ -41,6 +40,7 @@ public class User extends Thread{
 			users[numOfUsers] = this.name;
 			addresses[numOfUsers] = this.myAdr;
 			numOfUsers++;
+			new Thread(this).start();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -49,10 +49,9 @@ public class User extends Thread{
 	
 	
 	public void run() {
-		String message, dest;
 		System.out.println("Running: "+name);
-		Timer t = new Timer( );
-		t.scheduleAtFixedRate(new TimerTask() {
+		Timer timer = new Timer( );
+		timer.scheduleAtFixedRate(new TimerTask() {
 		    @Override
 		    public void run() {
 		    	String message,dest;
@@ -83,7 +82,7 @@ public class User extends Thread{
 	public void send(InetSocketAddress dest, byte[] data) {
 		try {
 			System.out.println(name+" Sending: " + Arrays.toString(data) + " to " + dest);
-			Packet p = new Packet(myAdr, dest, data);
+			Packet p = new Packet(myAdr, dest, data, Packet.MESSAGE);
 			DatagramPacket packet = p.toDatagramPacket();
 			System.out.println("Router "+routerAdr);
 			packet.setSocketAddress(routerAdr);
@@ -132,5 +131,9 @@ public class User extends Thread{
 	
 	public void setRouter(Router r){
 		this.routerAdr = r.getAddress();
+	}
+	
+	public InetSocketAddress getAdr(){
+		return this.myAdr;
 	}
 }

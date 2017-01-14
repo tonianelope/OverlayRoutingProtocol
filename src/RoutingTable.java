@@ -206,9 +206,10 @@ public class RoutingTable {
 		
 		for(int i=0; i<this.length; i++){
 			if(!table[i][0].equals(null)){
-				result = result.concat(table[i][0] +"|"+ table[i][1] +"|"+ table[i][2] + ";");
+				result = result.concat(table[i][0] +" | "+ table[i][1] +" | "+ tableWeights[i] + " \n");
 			}
 		}
+		result = result.substring(0, result.length()-1);
 		result = result.concat("]");
 		return result;
 	}

@@ -121,7 +121,7 @@ public class LinkStateRouter extends Router{
 			for(int i = 0; i<table.getLength(); i++){
 				
 				if(table.getEntryAt(i) != this.getAddress()){
-					Packet p = new Packet(this.getAddress(), table.getEntryAt(i), data);
+					Packet p = new Packet(this.getAddress(), table.getEntryAt(i), data, Packet.ROUTER_TABLE);
 					DatagramPacket packet = p.toDatagramPacket();
 					System.out.println("Router "+this.getAddress()+" sending neighbours in OSPF to " + table.getEntryAt(i));
 					packet.setSocketAddress(table.getHopAt(i));
@@ -170,5 +170,11 @@ public class LinkStateRouter extends Router{
 		}
 		
 		return newTable;
+	}
+
+	@Override
+	void receiveTable(DatagramPacket p) {
+		// TODO Auto-generated method stub
+		
 	}
 }
