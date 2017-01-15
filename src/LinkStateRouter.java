@@ -144,8 +144,9 @@ public class LinkStateRouter extends Router{
 		
 		while(count < newTable.getLength()){
 			for(int i = 0; i<temporaryList.size(); i++){
-				if(temporaryList.get(i).address.equals(newTable.getEntryAt(count-1)) || 
-								temporaryList.get(i).nextHop.equals(newTable.getEntryAt(count-1))){
+				if(( temporaryList.get(i).address.equals(newTable.getEntryAt(count-1)) || 
+								temporaryList.get(i).nextHop.equals(newTable.getEntryAt(count-1))) && !(newTable.contains(temporaryList.get(i).address))){
+					
 					Node newNode;
 					Node oldNode= (temporaryList.get(i));
 					
