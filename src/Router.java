@@ -138,7 +138,8 @@ public abstract class Router extends Thread {
 	public void printTable(){
 		System.out.println(table);
 		try{
-		terminal.println(table.toString());
+			terminal.println("\n" + this.getName() + "'s Routing table:");
+			terminal.println(table.toString());
 		}catch(Exception e){
 			terminal.println("No table");
 		}

@@ -57,6 +57,7 @@ public class LinkStateRouter extends Router{
 	 * Creates new rtable from received info
 	 */
 	public void createRTable() {
+		terminal.println("Building Routing Table from received info using Dijkstra");
 		this.table = dijkstraAlgorithm();
 	}
 	

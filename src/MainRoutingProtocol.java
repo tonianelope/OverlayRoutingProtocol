@@ -54,6 +54,9 @@ public class MainRoutingProtocol {
 			smith.addNeighbor(jones);
 			smith.addNeighbor(murphy);
 			
+			System.out.println("murphy");
+			murphy.printTable();
+			
 			jones.sendNeighbours();
 			try {
 				Thread.sleep(1000);
