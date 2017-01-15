@@ -2,12 +2,14 @@ import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.util.Scanner;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.net.DatagramPacket;
 import tcdIO.*;
 
 public abstract class Router extends Thread {
 	static final int PACKETSIZE = 65536;
-	public static final int RTABLE_RESEND_INTERVAL = 10000; //10 s, 10000 ms
+	public static final int RTABLE_RESEND_INTERVAL = 10000; // 10 s, 10000 ms
 
 	String name;
 	int id;
@@ -15,14 +17,14 @@ public abstract class Router extends Thread {
 	User[] users;
 	DatagramSocket socket;
 	RoutingTable table;
-	private InetSocketAddress address;
+	InetSocketAddress address;
 	Terminal terminal;
-	
+
 	/**
 	 *
 	 * @param name
 	 * @param id
-	 * 		- ip and port 1
+	 *            - ip and port 1
 	 * 
 	 */
 	public Router(String name, InetSocketAddress adr) {
@@ -35,7 +37,17 @@ public abstract class Router extends Thread {
 			System.out.println("Creating: " + name);
 			terminal = new Terminal(this.name);
 			new Thread(this).start();
-			table = new RoutingTable(0);
+			table = new RoutingTable(1);
+			table.addEntry(adr, adr, 0);
+			Timer timer = new Timer();
+			timer.scheduleAtFixedRate(new TimerTask() {
+				@Override
+				public void run() {
+					if (terminal.readString().equals("print")) {
+						printTable();
+					}
+				}
+			}, 0, 1000);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -49,8 +61,8 @@ public abstract class Router extends Thread {
 		try {
 			Packet packet = Packet.fromDatagramPacket(p);
 			InetSocketAddress dest = packet.getDest();
-			System.out.println(name+" Received for: "+dest);
-			terminal.println("Received for: "+dest);
+			System.out.println(name + " Received for: " + dest);
+			terminal.println("Received for: " + dest);
 			InetSocketAddress hop = table.getNextHop(dest);
 			if (hop.equals(address)) {
 				hop = dest;
@@ -60,24 +72,35 @@ public abstract class Router extends Thread {
 			// Sets the SocketAddress (usually IP address + port number) of the
 			// remote host to which this datagram is being sent.
 			System.out.println("Hop: " + hop);
-			terminal.println("Forwarding to: "+hop);
+			terminal.println("Forwarding to: " + hop);
 			p.setSocketAddress(hop);
 			socket.send(p);
 		} catch (Exception e) {
-			System.err.println(name+" ERROR can't forward packet");
+			System.err.println(name + " ERROR can't forward packet");
 			e.printStackTrace();
 		}
+		Timer timer = new Timer();
+		timer.scheduleAtFixedRate(new TimerTask() {
+			@Override
+			public void run() {
+				if (terminal.readString().equals("print")) {
+					terminal.println("PRINT");
+					printTable();
+				}
+			}
+		}, 0, 1000);
 	}
 
 	public void run() {
 		System.out.println("Running: " + name);
+		
 		while (true) {
 			DatagramPacket p = new DatagramPacket(new byte[PACKETSIZE], PACKETSIZE);
 			try {
 				socket.receive(p);
-				if(Packet.MESSAGE==Packet.fromDatagramPacket(p).getType()){
+				if (Packet.MESSAGE == Packet.fromDatagramPacket(p).getType()) {
 					forwardMessage(p);
-				}else{
+				} else {
 					receiveTable(p);
 				}
 			} catch (Exception e) {
@@ -86,23 +109,29 @@ public abstract class Router extends Thread {
 			}
 		}
 	}
-	
+
 	abstract void receiveTable(DatagramPacket p);
-	
-	public void addNeighbor(Router n) {
+
+	public void addNeighbor(Router n, int cost) {
 		Router[] temp = new Router[neighbors.length + 1];
 		System.arraycopy(neighbors, 0, temp, 0, neighbors.length);
 		temp[neighbors.length] = n;
 		neighbors = temp;
-		//table.addEntry(destID, nextHopID, cost); needs change to InetAddresss
-		
+		table.addEntry(n.getAddress(), address, cost);
+		temp = new Router[n.neighbors.length + 1];
+		System.arraycopy(n.neighbors, 0, temp, 0, n.neighbors.length);
+		temp[n.neighbors.length] = this;
+		n.neighbors = temp;
+		n.table.addEntry(address, n.getAddress(), cost);
+		printN();
+		n.printN();
 	}
-	
+
 	/**
 	 * Sends this router's current routing table to all neighbours
 	 */
-	public void sendTable(){
-		
+	public void sendTable() {
+
 	}
 
 	public void setTable(RoutingTable t) {
@@ -115,15 +144,14 @@ public abstract class Router extends Thread {
 		temp[users.length] = u;
 		users = temp;
 		u.setRouter(this);
-		//table.addEntry(destID, nextHopID, cost); needs change to InetAddresss
-
+		table.addEntry(u.getAdr(), address, 1);
 	}
-	
-	public int getPort(){
+
+	public int getPort() {
 		return address.getPort();
 	}
-	
-	public String getRouterName(){
+
+	public String getRouterName() {
 		return name;
 	}
 
@@ -134,37 +162,47 @@ public abstract class Router extends Thread {
 	public void setAddress(InetSocketAddress address) {
 		this.address = address;
 	}
-	
-	public void printTable(){
+
+	public void printTable() {
 		System.out.println(table);
-		try{
+		try {
 			terminal.println("\n" + this.getName() + "'s Routing table:");
 			terminal.println(table.toString());
-		}catch(Exception e){
+		} catch (Exception e) {
 			terminal.println("No table");
 		}
 	}
-	
+
 	/*
 	 * creates router in a (currently) fixed topology
 	 */
-	public void main(String[] args){
-		InetSocketAddress id =  new InetSocketAddress(args[1], Integer.parseInt(args[2]));
-	//	Router r = new Router(args[0], id);
+	public void main(String[] args) {
+		InetSocketAddress id = new InetSocketAddress(args[1], Integer.parseInt(args[2]));
+		// Router r = new Router(args[0], id);
 		boolean close = false;
 		Scanner sc = new Scanner(System.in);
-		while(!close){
-			if(sc.hasNext("c")) close = true;
-			else if(sc.hasNext("add")){
+		while (!close) {
+			if (sc.hasNext("c"))
+				close = true;
+			else if (sc.hasNext("add")) {
 				sc.next();
-	//			r.addNeighbor(new Router(sc.next(), new InetSocketAddress(sc.next(), sc.nextInt())));
+				// r.addNeighbor(new Router(sc.next(), new
+				// InetSocketAddress(sc.next(), sc.nextInt())));
 			}
 		}
 		sc.close();
 	}
 
+	private void printN() {
+		for (int i = 0; i < this.neighbors.length; i++) {
+			System.out.println("N "+name +" "+i+" "+neighbors.length);
+			System.out.println(neighbors[i].getRouterName()+" "+neighbors[i].getAddress());
+			terminal.println(neighbors[i].getRouterName()+" "+neighbors[i].getAddress());
+		}
+	}
+
 	public void sendNeighbours() {
 		// TODO Auto-generated method stub
-		
+
 	}
 }
