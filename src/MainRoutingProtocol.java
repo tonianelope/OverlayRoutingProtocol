@@ -49,25 +49,65 @@ public class MainRoutingProtocol {
 			smith = new LinkStateRouter("Smith", a3,4);
 			r = new LinkStateRouter("Router", a5,4);
 			murphy = new LinkStateRouter("Murphy", a7,4);
+			
+			jones.table.addEntry(smith.getAddress(), smith.getAddress(), 20);
+			jones.table.addEntry(r.getAddress(), r.getAddress(), 2);
+			jones.printTable();
+			
+			r.table.addEntry(jones.getAddress(), jones.getAddress(), 2);
+			r.table.addEntry(murphy.getAddress(), murphy.getAddress(), 3);
+			r.printTable();
+			
+			smith.table.addEntry(jones.getAddress(), jones.getAddress(), 20);
+			smith.table.addEntry(murphy.getAddress(), murphy.getAddress(), 13);
+			
+			murphy.table.addEntry(r.getAddress(), r.getAddress(), 3);
+			murphy.table.addEntry(smith.getAddress(), smith.getAddress(), 13);
+			
+			
+			jones.addToNeighbours(smith.getAddress());
+			jones.addToNeighbours(r.getAddress());
+			jones.printTable();
+			
+			r.addToNeighbours(jones.getAddress());
+			r.addToNeighbours(murphy.getAddress());
+			
+			smith.addToNeighbours(jones.getAddress());
+			smith.addToNeighbours(murphy.getAddress());
+			
+			murphy.addToNeighbours(smith.getAddress());
+			murphy.addToNeighbours(r.getAddress());
+			
 			murphy.printTable();
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			smith.printTable();
+			jones.printTable();
+			r.printTable();
+			
 			smith.sendNeighbours();
+			jones.sendNeighbours();
+			r.sendNeighbours();
+			murphy.sendNeighbours();
 			try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			murphy.printTable();
+			smith.printTable();
+			jones.printTable();
+			r.printTable();
+			
 		} else if (selectedValue.equals(options[0])) {
 			jones = new DistanceVectorRouter("Jones", a1);
 			smith = new DistanceVectorRouter("Smith", a3);
 			r = new DistanceVectorRouter("Router", a5);
 			murphy = new DistanceVectorRouter("Murphy", a7);
+			
+			jones.addNeighbor(smith, 20);
+			jones.addNeighbor(r, 2);
+			r.addNeighbor(murphy, 3);
+			murphy.addNeighbor(smith, 13);
+			
 		} else {
 			jones = new LinkStateRouter("Jones", a1,4);
 			smith = new LinkStateRouter("Smith", a3,4);
@@ -89,17 +129,17 @@ public class MainRoutingProtocol {
 			t2.addEntry(a2, a1, 2);
 
 			smith.setTable(t2);
+			
+			jones.addNeighbor(smith, 20);
+			jones.addNeighbor(r, 2);
+			r.addNeighbor(murphy, 3);
+			murphy.addNeighbor(smith, 13);
 		}
 		
 		User alice = new User("Alice", a2, jones);
 		User bob = new User("Bob", a4, smith);
 		User fridge = new Fridge("Fridge J.", a6, jones, 1);
 		User tom = new User("Tom", a8, murphy);
-		
-		jones.addNeighbor(smith, 20);
-		jones.addNeighbor(r, 2);
-		r.addNeighbor(murphy, 3);
-		murphy.addNeighbor(smith, 13);
 		
 		jones.printTable();
 		smith.printTable();

@@ -269,4 +269,15 @@ public class RoutingTable {
 		result = result.concat("]");
 		return result;
 	}
+
+	public boolean contains(InetSocketAddress address) {
+		for(int i = 0; i<this.length; i++){
+			if(this.table[i][0] != null){
+				if(this.table[i][0].equals(address)){
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 }

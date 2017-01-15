@@ -200,9 +200,14 @@ public abstract class Router extends Thread {
 			terminal.println(neighbors[i].getRouterName()+" "+neighbors[i].getAddress());
 		}
 	}
-
+	
+	/**
+	 * implemented by LSRouter
+	 */
 	public void sendNeighbours() {
-		// TODO Auto-generated method stub
 
+	}
+	public void addToNeighbours(InetSocketAddress nAddr){
+		
 	}
 }
