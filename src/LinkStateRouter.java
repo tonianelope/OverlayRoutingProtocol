@@ -132,8 +132,18 @@ public class LinkStateRouter extends Router{
 			for(int i = 0; i<temporaryList.size(); i++){
 				if(temporaryList.get(i).address.equals(newTable.getEntryAt(count-1)) || 
 								temporaryList.get(i).nextHop.equals(newTable.getEntryAt(count-1))){
-					Node newNode = (temporaryList.get(i));
-					newNode.distance = newNode.distance + newTable.getCostAt(count-1);
+					Node newNode;
+					Node oldNode= (temporaryList.get(i));
+					
+					//correct node so final destination is in right field
+					if(oldNode.address.equals(newTable.getEntryAt(count-1))){
+						newNode = new Node(oldNode.nextHop, oldNode.address, 0);
+					}
+					else{
+						newNode = new Node(oldNode.address, oldNode.nextHop, 0);
+					}
+					
+					newNode.distance = oldNode.distance + newTable.getCostAt(count-1);
 					tentative.add(newNode);
 				}
 			}
