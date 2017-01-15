@@ -161,4 +161,9 @@ public abstract class Router extends Thread {
 		}
 		sc.close();
 	}
+
+	public void sendNeighbours() {
+		// TODO Auto-generated method stub
+		
+	}
 }

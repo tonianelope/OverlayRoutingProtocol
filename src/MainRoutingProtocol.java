@@ -31,21 +31,55 @@ public class MainRoutingProtocol {
 
 		Router jones, smith, r, murphy;
 
-		if (selectedValue.equals(options[0])) {
-			jones = new LinkStateRouter("Jones", a1);
-			smith = new LinkStateRouter("Smith", a3);
-			r = new LinkStateRouter("Router", a5);
-			murphy = new LinkStateRouter("Murphy", a7);
-		} else if (selectedValue.equals(options[1])) {
+		if (selectedValue.equals(options[1])) {
+			jones = new LinkStateRouter("Jones", a1, 3);
+			smith = new LinkStateRouter("Smith", a3, 3);
+			murphy = new LinkStateRouter("Murphy", a7, 3);
+			
+			RoutingTable t1 = new RoutingTable(3);
+			RoutingTable t2 = new RoutingTable(3);
+			t1.addEntry(a1, a1, 0);
+			t1.addEntry(a3, a3, 1);
+			t1.addEntry(a7, a7, 10);
+			
+			jones.setTable(t1);
+			jones.addNeighbor(smith);
+			jones.addNeighbor(murphy);
+
+			t2.addEntry(a3, a3, 0);
+			t2.addEntry(a1, a1, 1);
+			t2.addEntry(a7, a7, 20);
+
+			smith.setTable(t2);
+			smith.addNeighbor(jones);
+			smith.addNeighbor(murphy);
+			
+			jones.sendNeighbours();
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			smith.sendNeighbours();
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			
+		} else if (selectedValue.equals(options[0])) {
 			jones = new DistanceVectorRouter("Jones", a1);
 			smith = new DistanceVectorRouter("Smith", a3);
 			r = new DistanceVectorRouter("Router", a5);
 			murphy = new DistanceVectorRouter("Murphy", a7);
 		} else {
-			jones = new LinkStateRouter("Jones", a1);
-			smith = new LinkStateRouter("Smith", a3);
-			r = new LinkStateRouter("Router", a5);
-			murphy = new LinkStateRouter("Murphy", a7);
+			jones = new LinkStateRouter("Jones", a1, 4);
+			smith = new LinkStateRouter("Smith", a3, 4);
+			r = new LinkStateRouter("Router", a5, 4);
+			murphy = new LinkStateRouter("Murphy", a7, 4);
 
 			RoutingTable t1 = new RoutingTable(4);
 			RoutingTable t2 = new RoutingTable(4);
@@ -67,17 +101,21 @@ public class MainRoutingProtocol {
 		User bob = new User("Bob", a4, smith);
 		User fridge = new Fridge("Fridge J.", a6, jones, 1);
 		User tom = new User("Tom", a8, murphy);
-
+		
+		System.out.println("JOnes");
 		jones.printTable();
+		System.out.println("smith");
 		smith.printTable();
-		r.printTable();
+		//System.out.println("r");
+		//r.printTable();
+		System.out.println("murphy");
 		murphy.printTable();
 	}
 	// String s = "Hello, Bob";
 	// byte[] data = s.getBytes();
 	// one.send(a4, data);
 	//
-	// s = "Hello, Alcie";
+	// s = "Hello, Alice";
 	// data = s.getBytes();
 	// two.send(a2, data);
 

@@ -202,11 +202,11 @@ public class RoutingTable {
 	
 	
 	public String toString(){
-		String result = "[";
+		String result = "[ ";
 		
 		for(int i=0; i<this.length; i++){
-			if(!table[i][0].equals(null)){
-				result = result.concat(table[i][0] +" | "+ table[i][1] +" | "+ tableWeights[i] + " \n");
+			if(table[i][0]!=(null)){
+				result = result.concat(" " + table[i][0] +" | "+ table[i][1] +" | "+ tableWeights[i] + " \n");
 			}
 		}
 		result = result.substring(0, result.length()-1);

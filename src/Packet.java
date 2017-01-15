@@ -13,7 +13,7 @@ public class Packet {
 	private byte[] data;
 	private int type; 
 	public final static int MESSAGE = 1;
-	public final static int ROUTER_TABLE = 0;
+	public final static int ROUTER_TABLE = 2;
 	//Type to idetify routingTable or message packet? 1
 	
 	public Packet(InetSocketAddress src, InetSocketAddress dest, byte[] data, int type){

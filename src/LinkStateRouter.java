@@ -7,7 +7,6 @@ import java.net.DatagramPacket;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 /**
  * LinkStateRouter represents a router that uses OSPF to forward packets
@@ -15,27 +14,22 @@ import java.util.Arrays;
  */
 public class LinkStateRouter extends Router{
 	
+	private int[] prevSeqNums;
+	private int totalNodes;
 	private ArrayList<Node> temporaryList;
 	private int seqNum;
+	private int infoReceived;
+	private static int ids = 0;
+	private int id;
 	
-	public LinkStateRouter(String name, InetSocketAddress id) {
+	public LinkStateRouter(String name, InetSocketAddress id, int totalNodes) {
 		super(name, id);
 		temporaryList = new ArrayList<Node>();
-		seqNum = 0;
-	}
-	
-	/**
-	 * Node represents the triple (IP address, next hop IP, distance) in the network graph
-	 */
-	private class Node{
-		InetSocketAddress address;
-		InetSocketAddress nextHop;
-		int distance;
-		Node(InetSocketAddress addr, InetSocketAddress next, int dist){
-			address = addr;
-			nextHop = next;
-			distance = dist;
-		}
+		seqNum = 1;
+		infoReceived = 0;
+		this.totalNodes = totalNodes;
+		prevSeqNums = new int[totalNodes];
+		this.id = LinkStateRouter.ids++;
 	}
 	
 	@Override
@@ -45,7 +39,13 @@ public class LinkStateRouter extends Router{
 			DatagramPacket p = new DatagramPacket(new byte[PACKETSIZE], PACKETSIZE);
 			try {
 				socket.receive(p);
-				forwardMessage(p);
+				Packet packet = Packet.fromDatagramPacket(p);
+				if(packet.getType() == Packet.MESSAGE){
+					forwardMessage(p);
+				}
+				else if (packet.getType() == Packet.ROUTER_TABLE){
+					receiveTable(p);					
+				}
 			} catch (Exception e) {
 				if (!(e instanceof SocketException))
 					e.printStackTrace();
@@ -75,8 +75,9 @@ public class LinkStateRouter extends Router{
 	/**
 	 * Sends neighbours 
 	 */
+	@Override
 	public void sendNeighbours(){
-		
+		System.out.println("sending neighbours");
 		int numOfNodes = this.neighbors.length;
 		
 		Node[] neighbourNodes = new Node[numOfNodes];
@@ -92,6 +93,7 @@ public class LinkStateRouter extends Router{
 		try{
 			oout = new ObjectOutputStream(byteOut);
 			oout.writeInt(seqNum++);						//seqNum prevents infintite loops
+			oout.writeInt(id);
 			oout.writeInt(numOfNodes);
 			oout.writeObject(neighbourNodes);
 			oout.flush();
@@ -121,16 +123,17 @@ public class LinkStateRouter extends Router{
 	 * Creates a new routing table giving the shortest path to each destination using Dijkstra's algorithm;
 	 */
 	public RoutingTable dijkstraAlgorithm(){
-		RoutingTable newTable = new RoutingTable(table.getLength());
+		RoutingTable newTable = new RoutingTable(totalNodes);
 		newTable.addEntry(this.getAddress(), this.getAddress(), 0);
 		ArrayList<Node> tentative = new ArrayList<Node>();
 		int count = 1;
 		
-		while(count != newTable.getLength()){
+		while(count < newTable.getLength()){
 			for(int i = 0; i<temporaryList.size(); i++){
-				if(temporaryList.get(i).address.equals(newTable.getEntryAt(count)) || temporaryList.get(i).nextHop.equals(newTable.getEntryAt(count))){
+				if(temporaryList.get(i).address.equals(newTable.getEntryAt(count-1)) || 
+								temporaryList.get(i).nextHop.equals(newTable.getEntryAt(count-1))){
 					Node newNode = (temporaryList.get(i));
-					newNode.distance = newNode.distance + newTable.getCostAt(i);
+					newNode.distance = newNode.distance + newTable.getCostAt(count-1);
 					tentative.add(newNode);
 				}
 			}
@@ -162,15 +165,23 @@ public class LinkStateRouter extends Router{
 		try {
 			ObjectInputStream oin = new ObjectInputStream(bin);
 			int sNum = oin.readInt();
-			//if(sNum > prevSNum){									//will add
+			int readID = oin.readInt();
 			
-			int numOfNodes = oin.readInt();
-			Node[] neighbourNodes = (Node[]) oin.readObject();
+			if(sNum > prevSeqNums[readID]){									//will add
+				prevSeqNums[readID] = sNum;
+				++infoReceived;
+				int numOfNodes = oin.readInt();
+				Node[] neighbourNodes = (Node[]) oin.readObject();
+				
+				for(int i = 0; i<numOfNodes; i++){
+					temporaryList.add(neighbourNodes[i]);
+				}
+				if(infoReceived >= this.totalNodes-1){
+					infoReceived = 0;
+					this.createRTable();
+				}
 			
-			for(int i = 0; i<numOfNodes; i++){
-				temporaryList.add(neighbourNodes[i]);
 			}
-			//}
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (ClassNotFoundException e) {
