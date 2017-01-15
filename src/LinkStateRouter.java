@@ -21,6 +21,7 @@ public class LinkStateRouter extends Router{
 	private int infoReceived;
 	private static int ids = 0;
 	private int id;
+	private ArrayList<InetSocketAddress> neighbours;
 	
 	public LinkStateRouter(String name, InetSocketAddress id, int totalNodes) {
 		super(name, id);
@@ -29,6 +30,7 @@ public class LinkStateRouter extends Router{
 		infoReceived = 0;
 		this.totalNodes = totalNodes;
 		prevSeqNums = new int[totalNodes];
+		neighbours = new ArrayList<InetSocketAddress>();
 		this.id = LinkStateRouter.ids++;
 	}
 	
@@ -74,29 +76,23 @@ public class LinkStateRouter extends Router{
 	}
 	
 	/**
-	 * Sends neighbours 
+	 * add a neighbour of this router's address
+	 * @param nAddr
 	 */
 	@Override
-	public void sendNeighbours(){
-		System.out.println("sending neighbours");
-		int numOfNodes = this.neighbors.length;
-		
-		Node[] neighbourNodes = new Node[numOfNodes];
-		
-		for(int i = 0; i<this.neighbors.length; i++){
-			int cost = table.costTo(this.neighbors[i].getAddress());
-			Node neighbourNode = new Node(this.getAddress(), this.neighbors[i].getAddress(), cost);
-			neighbourNodes[i] = neighbourNode;
-		}
-		
+	public void addToNeighbours(InetSocketAddress nAddr){
+		neighbours.add(nAddr);
+	}
+	
+	public void sendNodeArray(Node[] nodes, int numOfNodes, int sNum, int senderID){
 		ObjectOutputStream oout;
 		ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
 		try{
 			oout = new ObjectOutputStream(byteOut);
-			oout.writeInt(seqNum++);						//seqNum prevents infintite loops
-			oout.writeInt(id);
+			oout.writeInt(sNum);						//seqNum prevents infintite loops
+			oout.writeInt(senderID);
 			oout.writeInt(numOfNodes);
-			oout.writeObject(neighbourNodes);
+			oout.writeObject(nodes);
 			oout.flush();
 			
 			byte[] data = byteOut.toByteArray();
@@ -115,11 +111,28 @@ public class LinkStateRouter extends Router{
 		catch(Exception e){
 			e.printStackTrace();
 		}
+	}
+	
+	/**
+	 * Sends neighbours 
+	 */
+	@Override
+	public void sendNeighbours(){
+		System.out.println("sending neighbours");
+		int numOfNodes = this.neighbours.size();
+		
+		Node[] neighbourNodes = new Node[numOfNodes];
+		
+		for(int i = 0; i<this.neighbours.size(); i++){
+			int cost = table.costTo(this.neighbours.get(i));
+			Node neighbourNode = new Node(this.getAddress(), this.neighbours.get(i), cost);
+			neighbourNodes[i] = neighbourNode;
+		}
+		sendNodeArray(neighbourNodes, numOfNodes, this.seqNum++, this.id);
 		
 	}
 	
 	
-	//TODO needs testing
 	/**
 	 * Creates a new routing table giving the shortest path to each destination using Dijkstra's algorithm;
 	 */
@@ -131,12 +144,14 @@ public class LinkStateRouter extends Router{
 		
 		while(count < newTable.getLength()){
 			for(int i = 0; i<temporaryList.size(); i++){
-				if(temporaryList.get(i).address.equals(newTable.getEntryAt(count-1)) || 
-								temporaryList.get(i).nextHop.equals(newTable.getEntryAt(count-1))){
+				if(( temporaryList.get(i).address.equals(newTable.getEntryAt(count-1)) || 
+								temporaryList.get(i).nextHop.equals(newTable.getEntryAt(count-1))) && !(newTable.contains(temporaryList.get(i).address))){
+					
 					Node newNode;
 					Node oldNode= (temporaryList.get(i));
 					
 					//correct node so final destination is in right field
+					
 					if(oldNode.address.equals(newTable.getEntryAt(count-1))){
 						newNode = new Node(oldNode.nextHop, oldNode.address, 0);
 					}
@@ -144,8 +159,30 @@ public class LinkStateRouter extends Router{
 						newNode = new Node(oldNode.address, oldNode.nextHop, 0);
 					}
 					
+					if(newNode.nextHop.equals(this.address)){
+						newNode.nextHop = newNode.address;
+					}
+					
+					
 					newNode.distance = oldNode.distance + newTable.getCostAt(count-1);
-					tentative.add(newNode);
+					if(newNode.address.equals(this.address)){
+						newNode.distance = Integer.MAX_VALUE;
+					}
+					boolean add = true;
+					for(int index = 0; index<tentative.size(); index++){
+						if(tentative.get(index).address.equals(newNode.address)){
+							
+							if(tentative.get(index).distance < newNode.distance){
+								add = false;
+							}
+							else{
+								tentative.remove(index);
+							}
+							
+						}
+					}
+					if(add==true){
+					tentative.add(newNode);}
 				}
 			}
 			Node smallest = tentative.get(0);
@@ -157,7 +194,9 @@ public class LinkStateRouter extends Router{
 				}
 			}
 			if(smallest != null){
-				newTable.addEntry(smallest.address, smallest.nextHop, smallest.distance);
+				if(!(newTable.contains(smallest.address))){
+					newTable.addEntry(smallest.address, smallest.nextHop, smallest.distance);
+				}
 				tentative.remove(indexOfSmallest);
 				count++;
 			}
@@ -178,11 +217,15 @@ public class LinkStateRouter extends Router{
 			int sNum = oin.readInt();
 			int readID = oin.readInt();
 			
-			if(sNum > prevSeqNums[readID]){									//will add
+			if(sNum > prevSeqNums[readID] && readID != this.id){									//will add
+				
+				
 				prevSeqNums[readID] = sNum;
 				++infoReceived;
 				int numOfNodes = oin.readInt();
 				Node[] neighbourNodes = (Node[]) oin.readObject();
+				
+				this.sendNodeArray(neighbourNodes, numOfNodes, sNum, readID);
 				
 				for(int i = 0; i<numOfNodes; i++){
 					temporaryList.add(neighbourNodes[i]);

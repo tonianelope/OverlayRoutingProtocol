@@ -14,6 +14,19 @@ public class MainRoutingProtocol {
 	static final int PORT_7 = 50006;
 	static final int PORT_8 = 50007;
 
+	/**
+	 * creates the following typology:
+	 * 
+	 * 		fridge
+	 * 		  |
+	 * alice-jones--20--smith - bob
+	 * 		5000		5002
+	 * 		  |			 |
+	 * 		  2			13
+	 * 		  |			 |
+	 * 		  r----3---murphy - tom
+	 * 		5004		5006
+	 */
 	public static void main(String[] args) {
 
 		InetSocketAddress a1 = new InetSocketAddress("localhost", PORT_1);
@@ -32,57 +45,74 @@ public class MainRoutingProtocol {
 		Router jones, smith, r, murphy;
 
 		if (selectedValue.equals(options[1])) {
-			jones = new LinkStateRouter("Jones", a1, 3);
-			smith = new LinkStateRouter("Smith", a3, 3);
-			murphy = new LinkStateRouter("Murphy", a7, 3);
+			jones = new LinkStateRouter("Jones", a1,4);
+			smith = new LinkStateRouter("Smith", a3,4);
+			r = new LinkStateRouter("Router", a5,4);
+			murphy = new LinkStateRouter("Murphy", a7,4);
 			
-			RoutingTable t1 = new RoutingTable(3);
-			RoutingTable t2 = new RoutingTable(3);
-			t1.addEntry(a1, a1, 0);
-			t1.addEntry(a3, a3, 1);
-			t1.addEntry(a7, a7, 10);
+			jones.table.addEntry(smith.getAddress(), smith.getAddress(), 20);
+			jones.table.addEntry(r.getAddress(), r.getAddress(), 2);
+			jones.printTable();
 			
-			jones.setTable(t1);
-			jones.addNeighbor(smith);
-			jones.addNeighbor(murphy);
-
-			t2.addEntry(a3, a3, 0);
-			t2.addEntry(a1, a1, 1);
-			t2.addEntry(a7, a7, 20);
-
-			smith.setTable(t2);
-			smith.addNeighbor(jones);
-			smith.addNeighbor(murphy);
+			r.table.addEntry(jones.getAddress(), jones.getAddress(), 2);
+			r.table.addEntry(murphy.getAddress(), murphy.getAddress(), 3);
+			r.printTable();
 			
-			System.out.println("murphy");
+			smith.table.addEntry(jones.getAddress(), jones.getAddress(), 20);
+			smith.table.addEntry(murphy.getAddress(), murphy.getAddress(), 13);
+			
+			murphy.table.addEntry(r.getAddress(), r.getAddress(), 3);
+			murphy.table.addEntry(smith.getAddress(), smith.getAddress(), 13);
+			
+			
+			jones.addToNeighbours(smith.getAddress());
+			jones.addToNeighbours(r.getAddress());
+			jones.printTable();
+			
+			r.addToNeighbours(jones.getAddress());
+			r.addToNeighbours(murphy.getAddress());
+			
+			smith.addToNeighbours(jones.getAddress());
+			smith.addToNeighbours(murphy.getAddress());
+			
+			murphy.addToNeighbours(smith.getAddress());
+			murphy.addToNeighbours(r.getAddress());
+			
 			murphy.printTable();
+			smith.printTable();
+			jones.printTable();
+			r.printTable();
 			
-			jones.sendNeighbours();
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
 			smith.sendNeighbours();
+			jones.sendNeighbours();
+			r.sendNeighbours();
+			murphy.sendNeighbours();
 			try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			
+			murphy.printTable();
+			smith.printTable();
+			jones.printTable();
+			r.printTable();
 			
 		} else if (selectedValue.equals(options[0])) {
 			jones = new DistanceVectorRouter("Jones", a1);
 			smith = new DistanceVectorRouter("Smith", a3);
 			r = new DistanceVectorRouter("Router", a5);
 			murphy = new DistanceVectorRouter("Murphy", a7);
+			
+			jones.addNeighbor(smith, 20);
+			jones.addNeighbor(r, 2);
+			r.addNeighbor(murphy, 3);
+			murphy.addNeighbor(smith, 13);
+			
 		} else {
-			jones = new LinkStateRouter("Jones", a1, 4);
-			smith = new LinkStateRouter("Smith", a3, 4);
-			r = new LinkStateRouter("Router", a5, 4);
-			murphy = new LinkStateRouter("Murphy", a7, 4);
+			jones = new LinkStateRouter("Jones", a1,4);
+			smith = new LinkStateRouter("Smith", a3,4);
+			r = new LinkStateRouter("Router", a5,4);
+			murphy = new LinkStateRouter("Murphy", a7,4);
 
 			RoutingTable t1 = new RoutingTable(4);
 			RoutingTable t2 = new RoutingTable(4);
@@ -99,26 +129,28 @@ public class MainRoutingProtocol {
 			t2.addEntry(a2, a1, 2);
 
 			smith.setTable(t2);
+			
+			jones.addNeighbor(smith, 20);
+			jones.addNeighbor(r, 2);
+			r.addNeighbor(murphy, 3);
+			murphy.addNeighbor(smith, 13);
 		}
+		
 		User alice = new User("Alice", a2, jones);
 		User bob = new User("Bob", a4, smith);
 		User fridge = new Fridge("Fridge J.", a6, jones, 1);
 		User tom = new User("Tom", a8, murphy);
 		
-		System.out.println("JOnes");
 		jones.printTable();
-		System.out.println("smith");
 		smith.printTable();
-		//System.out.println("r");
-		//r.printTable();
-		System.out.println("murphy");
+		r.printTable();
 		murphy.printTable();
 	}
 	// String s = "Hello, Bob";
 	// byte[] data = s.getBytes();
 	// one.send(a4, data);
 	//
-	// s = "Hello, Alice";
+	// s = "Hello, Alcie";
 	// data = s.getBytes();
 	// two.send(a2, data);
 

@@ -5,6 +5,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.DatagramPacket;
 import java.net.InetSocketAddress;
+import java.util.Arrays;
 
 public class Packet {
 
@@ -33,8 +34,7 @@ public class Packet {
 			for(int i = 0; i<length; i++){
 				this.data[i] = oin.readByte();
 			}
-			System.out.println(this+" read: "+new InetSocketAddress(ipv4h.destIPAdr, udph.getDest())+
-					" "+new String(data));
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -47,8 +47,6 @@ public class Packet {
 			ByteArrayOutputStream bout;
 			ObjectOutputStream oout;
 			byte[] content;
-			System.out.println(this+" write: "+new InetSocketAddress(ipv4h.destIPAdr, udph.getDest())+
-					" "+new String(data));
 			bout = new ByteArrayOutputStream();
 			oout = new ObjectOutputStream(bout);
 
